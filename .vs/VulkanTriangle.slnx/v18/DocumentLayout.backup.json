@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\mlemoine\\RiderProjects\\VulkanTriangle\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{CC67A942-3D18-4BBC-A25C-D48A86BF1ECB}|VulkanTriangle\\VulkanTriangle.vcxproj|C:\\Users\\mlemoine\\RiderProjects\\VulkanTriangle\\VulkanTriangle\\VulkanTriangle.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}",
+      "RelativeMoniker": "D:0:0:{CC67A942-3D18-4BBC-A25C-D48A86BF1ECB}|VulkanTriangle\\VulkanTriangle.vcxproj|solutionrelative:VulkanTriangle\\VulkanTriangle.cpp||{D0E1A5C6-B359-4E41-9B60-3365922C2A22}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "VulkanTriangle.cpp",
+              "DocumentMoniker": "C:\\Users\\mlemoine\\RiderProjects\\VulkanTriangle\\VulkanTriangle\\VulkanTriangle.cpp",
+              "RelativeDocumentMoniker": "VulkanTriangle\\VulkanTriangle.cpp",
+              "ToolTip": "C:\\Users\\mlemoine\\RiderProjects\\VulkanTriangle\\VulkanTriangle\\VulkanTriangle.cpp",
+              "RelativeToolTip": "VulkanTriangle\\VulkanTriangle.cpp",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAPAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000677|",
+              "WhenOpened": "2026-10-06T07:14:30.242Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

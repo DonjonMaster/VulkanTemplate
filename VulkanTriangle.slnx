@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Win32" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="VulkanTriangle/VulkanTriangle.vcxproj" Id="cc67a942-3d18-4bbc-a25c-d48a86bf1ecb" />
+</Solution>
