@@ -11,11 +11,16 @@ vk::raii::SurfaceKHR& Surface::get_surface()
     return surface_;
 }
 
+vk::Extent2D& Surface::get_swap_chain_extent()
+{
+    return swap_chain_extent_;
+}
+
 void Surface::create_surface()
 {
     VkSurfaceKHR _surface;
-    vk::raii::Instance& instance = renderer_class_.get_instance();
-    GLFWwindow* window = application_class_.window;
+    vk::raii::Instance& instance = renderer_class_->get_instance();
+    GLFWwindow* window = application_class_->window;
     
     if (glfwCreateWindowSurface(*instance, window, nullptr, &_surface) != 0)
     {
@@ -26,11 +31,11 @@ void Surface::create_surface()
 
 void Surface::create_swap_chain()
 {
-    vk::SurfaceCapabilitiesKHR surface_capabilities = renderer_class_.get_physical_device().getSurfaceCapabilitiesKHR(*surface_);
+    vk::SurfaceCapabilitiesKHR surface_capabilities = renderer_class_->get_physical_device().getSurfaceCapabilitiesKHR(*surface_);
     swap_chain_extent_ = choose_swap_extent(surface_capabilities);
     uint32_t min_image_count = choose_swap_min_image_count(surface_capabilities);
     
-    std::vector<vk::SurfaceFormatKHR> available_formats = renderer_class_.get_physical_device().getSurfaceFormatsKHR(*surface_);
+    std::vector<vk::SurfaceFormatKHR> available_formats = renderer_class_->get_physical_device().getSurfaceFormatsKHR(*surface_);
     swap_chain_surface_format = choose_swap_surface_format(available_formats);
     
     // Define swap chain info
@@ -45,7 +50,7 @@ void Surface::create_swap_chain()
         .imageSharingMode = vk::SharingMode::eExclusive,
         .preTransform = surface_capabilities.currentTransform,
         .compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque,
-        .presentMode = choose_swap_present_mode(renderer_class_.get_physical_device().getSurfacePresentModesKHR(*surface_)),
+        .presentMode = choose_swap_present_mode(renderer_class_->get_physical_device().getSurfacePresentModesKHR(*surface_)),
         .clipped = true
     };
     
@@ -80,7 +85,7 @@ void Surface::create_image_views()
     for (auto &image : swap_chain_images_)
     {
         image_view_create_info.image = image;
-        vk::raii::Device& device = renderer_class_.get_device();
+        vk::raii::Device& device = renderer_class_->get_device();
         swap_chain_image_views_.emplace_back(device, image_view_create_info);
     }
 }
@@ -132,7 +137,7 @@ vk::Extent2D Surface::choose_swap_extent(vk::SurfaceCapabilitiesKHR const& capab
         return capabilities.currentExtent;
     }
     int width, height;
-    glfwGetFramebufferSize(application_class_.window, &width, &height);
+    glfwGetFramebufferSize(application_class_->window, &width, &height);
     // Set size to actual window size
     return {
         std::clamp<uint32_t>(width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width),

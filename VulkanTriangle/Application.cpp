@@ -36,9 +36,9 @@ void Application::init_vulkan()
 {
     renderer->create_instance();
     renderer->setup_debug_callback();
-    surface->create_surface();
     renderer->pick_physical_device();
     renderer->create_logical_device();
+    surface->create_surface();
     surface->create_swap_chain();
     surface->create_image_views();
     graphics_pipeline->create_graphics_pipeline();

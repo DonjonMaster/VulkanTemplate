@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <vulkan/vulkan_raii.hpp>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -11,6 +12,9 @@ class Application
 public:
     int width = 800;
     int height = 600;
+    
+    // TO DO : remove forward declaration execpt in Application
+    // Move all getters to application
     GLFWwindow* window = nullptr;
     Renderer* renderer = nullptr;
     Surface* surface = nullptr;
@@ -26,6 +30,4 @@ private:
     
     void destroy_window();
     void destroy_vulkan();
-    
-    
 };

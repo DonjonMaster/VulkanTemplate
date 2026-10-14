@@ -2,14 +2,13 @@
 
 #define VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
 #include "Surface.h"
+
 #include "vulkan/vulkan_raii.hpp"
 
 class Renderer
 {
 public:
     void create_instance();
-    void run_instance();
-    void destroy_instance();
     // Setup logger
     void setup_debug_callback();
     // Setup devices
@@ -69,7 +68,7 @@ private:
     
     
     // Forward declarations
-    Surface surface_class_;
+    Surface* surface_class_ = nullptr;
     
-    vk::raii::SurfaceKHR& surface_ = surface_class_.get_surface();
+    vk::raii::SurfaceKHR& surface_ = surface_class_->get_surface();
 };
