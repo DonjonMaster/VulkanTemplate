@@ -181,6 +181,7 @@
   <ItemGroup>
     <ClInclude Include="Application.h" />
     <ClInclude Include="Debug.h" />
+    <ClInclude Include="Dependencies.h" />
     <ClInclude Include="GraphicsPipeline.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Surface.h" />

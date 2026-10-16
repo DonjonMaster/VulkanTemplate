@@ -16,6 +16,11 @@ vk::Extent2D& Surface::get_swap_chain_extent()
     return swap_chain_extent_;
 }
 
+vk::SurfaceFormatKHR& Surface::get_swap_chain_surface_format()
+{
+    return swap_chain_surface_format;
+}
+
 void Surface::create_surface()
 {
     VkSurfaceKHR _surface;

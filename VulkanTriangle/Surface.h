@@ -16,6 +16,7 @@ class Surface
 public:
     vk::raii::SurfaceKHR& get_surface();
     vk::Extent2D& get_swap_chain_extent();
+    vk::SurfaceFormatKHR& get_swap_chain_surface_format();
     void create_surface();
     void create_swap_chain();
     void create_image_views();

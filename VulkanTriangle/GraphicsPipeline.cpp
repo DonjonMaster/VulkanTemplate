@@ -92,6 +92,38 @@ void GraphicsPipeline::create_graphics_pipeline()
     };
     
     pipeline_layout_ = vk::raii::PipelineLayout(renderer->get_device(), pipeline_layout_info);
+    
+    vk::PipelineRenderingCreateInfo pipeline_rendering_create_info{
+        .colorAttachmentCount = 1,
+        .pColorAttachmentFormats = &surface_->get_swap_chain_surface_format().format
+    };
+    
+    vk::GraphicsPipelineCreateInfo graphics_pipeline_create_info = 
+        {
+        .stageCount = 2,
+        .pStages = shader_stages,
+        .pVertexInputState = &vertex_input_info,
+        .pInputAssemblyState = &input_assembly,
+        .pViewportState = &viewport_state,
+        .pRasterizationState = &rasterizer,
+        .pMultisampleState = &multisampling,
+        .pColorBlendState = &color_blending,
+        .pDynamicState = &dynamic_state,
+        .layout = pipeline_layout_,
+        .renderPass = nullptr
+    };
+    
+    vk::StructureChain<vk::GraphicsPipelineCreateInfo, vk::PipelineRenderingCreateInfo> pipeline_create_info_chain = {
+        graphics_pipeline_create_info, 
+        pipeline_rendering_create_info
+    };
+    
+    graphics_pipeline_ = vk::raii::Pipeline(
+        renderer->get_device(), 
+        nullptr, 
+        pipeline_create_info_chain.
+        get<vk::GraphicsPipelineCreateInfo>()
+        );
 }
 
 std::vector<char> GraphicsPipeline::read_file(const std::string& filename)

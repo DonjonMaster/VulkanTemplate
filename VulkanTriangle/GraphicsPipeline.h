@@ -26,6 +26,7 @@ private:
     [[nodsicard]] vk::raii::ShaderModule create_shader_module(const std::vector<char>& code) const;
     
     vk::raii::PipelineLayout pipeline_layout_ = nullptr;
+    vk::raii::Pipeline graphics_pipeline_ = nullptr;
     
     Surface* surface_ = nullptr;
 };

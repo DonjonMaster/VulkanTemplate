@@ -13,8 +13,7 @@ public:
     int width = 800;
     int height = 600;
     
-    // TO DO : remove forward declaration execpt in Application
-    // Move all getters to application
+    
     GLFWwindow* window = nullptr;
     Renderer* renderer = nullptr;
     Surface* surface = nullptr;
