@@ -1,30 +1,30 @@
 ﻿#pragma once
 
-#include "Application.h"
-#include "Renderer.h"
+#include "Dependencies.h"
 
-#define VK_USE_PLATFORM_WIN32_KHR
-
-#define GLFW_INCLUDE_VULKAN
-#include <vulkan/vulkan_raii.hpp>
-#include <GLFW/glfw3.h>
-#define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
+// Forward declaration
+class Application;
 
 class Surface
 {
 public:
+    Surface(Application*);
+    ~Surface();
+    
     vk::raii::SurfaceKHR& get_surface();
     vk::Extent2D& get_swap_chain_extent();
     vk::SurfaceFormatKHR& get_swap_chain_surface_format();
+    std::vector<vk::Image>& get_swap_chain_images_();
+    std::vector<vk::raii::ImageView>& get_swap_chain_image_views();
+    
     void create_surface();
     void create_swap_chain();
     void create_image_views();
     
 private:
     // Forward declaration
-    Renderer* renderer_class_ = nullptr;
-    Application* application_class_ = nullptr;
+    Application* application_ = nullptr;
+    
     
     vk::raii::SurfaceKHR surface_ = nullptr;
     

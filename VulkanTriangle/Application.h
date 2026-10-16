@@ -1,11 +1,9 @@
 ﻿#pragma once
 
-#include <vulkan/vulkan_raii.hpp>
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
+#include "Buffers.h"
 #include "GraphicsPipeline.h"
 #include "Renderer.h"
+#include "Surface.h"
 
 class Application
 {
@@ -13,11 +11,14 @@ public:
     int width = 800;
     int height = 600;
     
+    explicit Application();
     
-    GLFWwindow* window = nullptr;
-    Renderer* renderer = nullptr;
-    Surface* surface = nullptr;
-    GraphicsPipeline* graphics_pipeline = nullptr;
+    
+    GLFWwindow* window;
+    Renderer renderer;
+    Surface surface;
+    GraphicsPipeline graphics_pipeline;
+    Buffers buffers;
     
     void init();
     void run();

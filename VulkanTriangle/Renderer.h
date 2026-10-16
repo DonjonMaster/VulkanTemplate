@@ -1,13 +1,15 @@
 ﻿#pragma once
 
-#define VULKAN_HPP_NO_STRUCT_CONSTRUCTORS
-#include "Surface.h"
+#include "Dependencies.h"
 
-#include "vulkan/vulkan_raii.hpp"
+class Surface;
+class Application;
 
 class Renderer
 {
 public:
+    Renderer(Application*);
+    
     void create_instance();
     // Setup logger
     void setup_debug_callback();
@@ -18,6 +20,8 @@ public:
     vk::raii::Instance& get_instance();
     vk::raii::PhysicalDevice& get_physical_device();
     vk::raii::Device& get_device();
+    
+    uint32_t get_final_queue_index();
 
 private:
     vk::raii::Context context_;
@@ -66,9 +70,7 @@ private:
 
     bool is_device_suitable(const vk::PhysicalDevice& physical_device);
     
+    uint32_t queue_index;
     
-    // Forward declarations
-    Surface* surface_class_ = nullptr;
-    
-    vk::raii::SurfaceKHR& surface_ = surface_class_->get_surface();
+    Application* application_;
 };

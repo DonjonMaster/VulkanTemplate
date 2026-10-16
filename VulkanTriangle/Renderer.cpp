@@ -1,10 +1,15 @@
 ﻿#include "Renderer.h"
+
+#include "Application.h"
 #include "Debug.h"
 
-#define GLFW_INCLUDE_VULKAN
 #include <iostream>
 #include <map>
-#include <GLFW/glfw3.h>
+
+
+Renderer::Renderer(Application* application) : application_(application)
+{
+}
 
 void Renderer::create_instance()
 {
@@ -87,8 +92,7 @@ void Renderer::pick_physical_device()
 
 void Renderer::create_logical_device()
 {
-    
-    const uint32_t queue_index = get_queue_index();
+    queue_index = get_queue_index();
     
     float queue_priority = 0.5f;
     // Create Device queue info
@@ -96,9 +100,9 @@ void Renderer::create_logical_device()
     
     auto required_device_extension = get_required_device_extensions();
     
-    auto surface_capabilities = physical_device_.getSurfaceCapabilitiesKHR(*surface_);
-    std::vector<vk::SurfaceFormatKHR> available_formats = physical_device_.getSurfaceFormatsKHR(*surface_);
-    std::vector<vk::PresentModeKHR> available_present_modes = physical_device_.getSurfacePresentModesKHR(*surface_);
+    auto surface_capabilities = physical_device_.getSurfaceCapabilitiesKHR(*application_->surface.get_surface());
+    std::vector<vk::SurfaceFormatKHR> available_formats = physical_device_.getSurfaceFormatsKHR(*application_->surface.get_surface());
+    std::vector<vk::PresentModeKHR> available_present_modes = physical_device_.getSurfacePresentModesKHR(*application_->surface.get_surface());
     
     // Define the logical device info
     vk::DeviceCreateInfo device_create_info = {
@@ -121,9 +125,7 @@ vk::Bool32 Renderer::debug_call_back(vk::DebugUtilsMessageSeverityFlagBitsEXT se
     if (severity == vk::DebugUtilsMessageSeverityFlagBitsEXT::eError
         ||
         severity == vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning)
-        std::cout << std::format("Validation Layer : Type [{}] - Message : {}", type, p_callback_data->pMessage) <<
-            '\n';
-
+        std::cout << "Validation Layer : Type [" << to_string(type) << "] - Message: " << p_callback_data->pMessage << '\n';
     return vk::False;
 }
 
@@ -142,6 +144,7 @@ bool Renderer::is_device_suitable(const vk::PhysicalDevice& physical_device)
         // "!!" converts to bool by applying NOT operator twice
         return !!(qfp.queueFlags & vk::QueueFlagBits::eGraphics);
     };
+    
     bool supports_graphics = std::ranges::any_of(queue_families, are_queues_and_graphics_supported);
 
     auto available_device_extensions = physical_device.enumerateDeviceExtensionProperties();
@@ -234,7 +237,7 @@ uint32_t Renderer::get_queue_index()
     for (uint32_t qfp_index = 0; qfp_index < queue_family_properties.size(); qfp_index++)
     {
         if ((queue_family_properties[qfp_index].queueFlags & vk::QueueFlagBits::eGraphics) 
-            && physical_device_.getSurfaceSupportKHR(qfp_index, surface_))
+            && physical_device_.getSurfaceSupportKHR(qfp_index, application_->surface.get_surface()))
         {
             // Found, so register, and quit loop
             queue_index = qfp_index;
@@ -305,4 +308,9 @@ vk::raii::PhysicalDevice& Renderer::get_physical_device()
 vk::raii::Device& Renderer::get_device()
 {
     return device_;
+}
+
+uint32_t Renderer::get_final_queue_index()
+{
+    return queue_index;
 }

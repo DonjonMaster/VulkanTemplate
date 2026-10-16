@@ -1,5 +1,10 @@
 ﻿#include "Application.h"
 
+Application::Application():renderer(this),surface(this), graphics_pipeline(this), buffers(this)
+{
+    
+}
+
 void Application::init()
 {
     init_window();
@@ -34,14 +39,20 @@ void Application::init_window()
 
 void Application::init_vulkan()
 {
-    renderer->create_instance();
-    renderer->setup_debug_callback();
-    renderer->pick_physical_device();
-    renderer->create_logical_device();
-    surface->create_surface();
-    surface->create_swap_chain();
-    surface->create_image_views();
-    graphics_pipeline->create_graphics_pipeline();
+    
+    renderer.create_instance();
+    renderer.setup_debug_callback();
+    renderer.pick_physical_device();
+    renderer.create_logical_device();
+    
+    surface.create_surface();
+    surface.create_swap_chain();
+    surface.create_image_views();
+    
+    graphics_pipeline.create_graphics_pipeline();
+    
+    buffers.create_command_pool();
+    buffers.create_command_buffer();
 }
 
 void Application::destroy_window()

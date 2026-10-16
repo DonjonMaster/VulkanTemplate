@@ -1,5 +1,11 @@
 ﻿#include "GraphicsPipeline.h"
 
+#include "Application.h"
+
+GraphicsPipeline::GraphicsPipeline(Application* application) : application_(application)
+{
+}
+
 void GraphicsPipeline::create_graphics_pipeline()
 {
    vk::raii::ShaderModule shader_module = create_shader_module(read_file("shaders/slang.spv"));
@@ -33,7 +39,7 @@ void GraphicsPipeline::create_graphics_pipeline()
         .topology = vk::PrimitiveTopology::eTriangleList
     };
     
-    vk::Extent2D swap_chain_extent = surface_->get_swap_chain_extent();
+    vk::Extent2D swap_chain_extent = application_->surface.get_swap_chain_extent();
     
     vk::Viewport viewport{
         0.0f, 
@@ -91,11 +97,11 @@ void GraphicsPipeline::create_graphics_pipeline()
         .pushConstantRangeCount = 0,
     };
     
-    pipeline_layout_ = vk::raii::PipelineLayout(renderer->get_device(), pipeline_layout_info);
+    pipeline_layout_ = vk::raii::PipelineLayout(application_->renderer.get_device(), pipeline_layout_info);
     
     vk::PipelineRenderingCreateInfo pipeline_rendering_create_info{
         .colorAttachmentCount = 1,
-        .pColorAttachmentFormats = &surface_->get_swap_chain_surface_format().format
+        .pColorAttachmentFormats = &application_->surface.get_swap_chain_surface_format().format
     };
     
     vk::GraphicsPipelineCreateInfo graphics_pipeline_create_info = 
@@ -119,11 +125,16 @@ void GraphicsPipeline::create_graphics_pipeline()
     };
     
     graphics_pipeline_ = vk::raii::Pipeline(
-        renderer->get_device(), 
+        application_->renderer.get_device(), 
         nullptr, 
         pipeline_create_info_chain.
         get<vk::GraphicsPipelineCreateInfo>()
         );
+}
+
+vk::raii::Pipeline& GraphicsPipeline::get_graphics_pipeline_()
+{
+    return graphics_pipeline_;
 }
 
 std::vector<char> GraphicsPipeline::read_file(const std::string& filename)
@@ -143,7 +154,7 @@ vk::raii::ShaderModule GraphicsPipeline::create_shader_module(const std::vector<
         .pCode = reinterpret_cast<const uint32_t*>(code.data()) 
     };
     
-    vk::raii::ShaderModule shader_module{renderer->get_device(), create_info};
+    vk::raii::ShaderModule shader_module{application_->renderer.get_device(), create_info};
     
     return shader_module;
 }
