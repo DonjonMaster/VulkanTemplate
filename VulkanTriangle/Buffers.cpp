@@ -32,6 +32,11 @@ void Buffers::create_command_buffer()
     command_buffer_ = std::move(vk::raii::CommandBuffers(application_->renderer.get_device(), allocate_info).front());
 }
 
+vk::raii::CommandBuffer& Buffers::get_command_buffer()
+{
+    return command_buffer_;
+}
+
 void Buffers::record_command_buffer(uint32_t image_index)
 {
     auto swap_chain_extent = application_->surface.get_swap_chain_extent();

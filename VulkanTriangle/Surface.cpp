@@ -18,6 +18,11 @@ vk::raii::SurfaceKHR& Surface::get_surface()
     return surface_;
 }
 
+vk::raii::SwapchainKHR& Surface::get_swap_chain()
+{
+    return swap_chain_;
+}
+
 vk::Extent2D& Surface::get_swap_chain_extent()
 {
     return swap_chain_extent_;

@@ -1,6 +1,6 @@
 ﻿#include "Application.h"
 
-Application::Application():renderer(this),surface(this), graphics_pipeline(this), buffers(this)
+Application::Application():renderer(this),surface(this), graphics_pipeline(this), buffers(this), drawer(this)
 {
     
 }
@@ -53,6 +53,9 @@ void Application::init_vulkan()
     
     buffers.create_command_pool();
     buffers.create_command_buffer();
+    
+    drawer.create_sync_objects();
+    drawer.draw_frame();
 }
 
 void Application::destroy_window()

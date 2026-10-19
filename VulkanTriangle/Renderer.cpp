@@ -314,3 +314,8 @@ uint32_t Renderer::get_final_queue_index()
 {
     return queue_index;
 }
+
+vk::raii::Queue Renderer::get_graphics_queue()
+{
+    return graphics_queue_;
+}

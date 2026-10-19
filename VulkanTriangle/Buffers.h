@@ -13,6 +13,7 @@ public:
     void create_command_pool();
     void create_command_buffer();
     
+    vk::raii::CommandBuffer& get_command_buffer();    
     
 private:
     // VARIABLES

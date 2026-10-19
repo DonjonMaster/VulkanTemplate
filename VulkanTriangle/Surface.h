@@ -12,6 +12,7 @@ public:
     ~Surface();
     
     vk::raii::SurfaceKHR& get_surface();
+    vk::raii::SwapchainKHR& get_swap_chain();
     vk::Extent2D& get_swap_chain_extent();
     vk::SurfaceFormatKHR& get_swap_chain_surface_format();
     std::vector<vk::Image>& get_swap_chain_images_();

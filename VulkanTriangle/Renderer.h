@@ -22,6 +22,8 @@ public:
     vk::raii::Device& get_device();
     
     uint32_t get_final_queue_index();
+    
+    vk::raii::Queue get_graphics_queue();
 
 private:
     vk::raii::Context context_;
