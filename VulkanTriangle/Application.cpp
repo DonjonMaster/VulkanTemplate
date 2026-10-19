@@ -16,7 +16,10 @@ void Application::run()
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
+        drawer.draw_frame();
     }
+    
+    renderer.get_device().waitIdle();
 }
 
 void Application::destroy()
@@ -34,6 +37,7 @@ void Application::init_window()
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     
     window = glfwCreateWindow(800, 600, "VulkanTriangle", nullptr, nullptr);
+    glfwSetFramebufferSizeCallback(window, Buffers::framebuffer_resize_callback);
     
 }
 
@@ -55,7 +59,6 @@ void Application::init_vulkan()
     buffers.create_command_buffer();
     
     drawer.create_sync_objects();
-    drawer.draw_frame();
 }
 
 void Application::destroy_window()

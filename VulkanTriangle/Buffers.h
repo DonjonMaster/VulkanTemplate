@@ -13,19 +13,24 @@ public:
     void create_command_pool();
     void create_command_buffer();
     
-    vk::raii::CommandBuffer& get_command_buffer();    
+    void record_command_buffer(uint32_t image_index);
+    
+    std::vector<vk::raii::CommandBuffer>& get_command_buffer();
+    bool& get_frame_buffer_resized();
+
+    static void framebuffer_resize_callback(GLFWwindow* window, int width, int height);
     
 private:
     // VARIABLES
+    bool frame_buffer_resized;
     
     // CommandPools manage the memory that is used to store buffers
     vk::raii::CommandPool command_pool_ = nullptr;
     // CommandBuffer are automatically freed when their command pool is destroyed
-    vk::raii::CommandBuffer command_buffer_ = nullptr;
+    std::vector<vk::raii::CommandBuffer> command_buffer_;
     
     // METHODS
     
-    void record_command_buffer(uint32_t image_index);
     // Transform an image layout to become suitable for rendering on a flat screen
     void transition_image_layout(
         uint32_t image_index,

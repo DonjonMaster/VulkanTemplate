@@ -23,18 +23,30 @@ void Buffers::create_command_pool()
 
 void Buffers::create_command_buffer()
 {
+    
     vk::CommandBufferAllocateInfo allocate_info{
         .commandPool = command_pool_,
         .level = vk::CommandBufferLevel::ePrimary,
-        .commandBufferCount = 1
+        .commandBufferCount = static_cast<uint32_t>(application_->drawer.get_max_frames_in_flights())
     };
 
-    command_buffer_ = std::move(vk::raii::CommandBuffers(application_->renderer.get_device(), allocate_info).front());
+    command_buffer_ = vk::raii::CommandBuffers(application_->renderer.get_device(), allocate_info);
 }
 
-vk::raii::CommandBuffer& Buffers::get_command_buffer()
+std::vector<vk::raii::CommandBuffer>& Buffers::get_command_buffer()
 {
     return command_buffer_;
+}
+
+bool& Buffers::get_frame_buffer_resized()
+{
+    return frame_buffer_resized;
+}
+
+void Buffers::framebuffer_resize_callback(GLFWwindow* window, int width, int height)
+{
+    auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
+    app->buffers.frame_buffer_resized = true;
 }
 
 void Buffers::record_command_buffer(uint32_t image_index)
@@ -42,7 +54,7 @@ void Buffers::record_command_buffer(uint32_t image_index)
     auto swap_chain_extent = application_->surface.get_swap_chain_extent();
     
     // Details about the usage of a type of buffer
-    command_buffer_.begin({});
+    auto &command_buffer = command_buffer_[application_->drawer.get_frame_index()];
     
     // Before rendering (transition from swapchain image to a colored image)
     transition_image_layout(
@@ -73,11 +85,11 @@ void Buffers::record_command_buffer(uint32_t image_index)
     };
     
     // Begin rendering
-    command_buffer_.beginRendering(rendering_info);
+    command_buffer.beginRendering(rendering_info);
     
-    command_buffer_.bindPipeline(vk::PipelineBindPoint::eGraphics, *application_->graphics_pipeline.get_graphics_pipeline_());
+    command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *application_->graphics_pipeline.get_graphics_pipeline_());
     
-    command_buffer_.setViewport(0, vk::Viewport(
+    command_buffer.setViewport(0, vk::Viewport(
         0.0f, 
         0.0, 
         static_cast<float>(swap_chain_extent.width), 
@@ -85,11 +97,11 @@ void Buffers::record_command_buffer(uint32_t image_index)
         0.0f,
         1.0f));
     
-    command_buffer_.setScissor(0, vk::Rect2D(vk::Offset2D(0, 0), swap_chain_extent));
+    command_buffer.setScissor(0, vk::Rect2D(vk::Offset2D(0, 0), swap_chain_extent));
     
-    command_buffer_.draw(3, 1, 0, 0);
+    command_buffer.draw(3, 1, 0, 0);
     
-    command_buffer_.endRendering();
+    command_buffer.endRendering();
     
     // After rendering (transition from swapchain image to a presentable image for flat screens)
     transition_image_layout(
@@ -102,7 +114,7 @@ void Buffers::record_command_buffer(uint32_t image_index)
         vk::PipelineStageFlagBits2::eBottomOfPipe
         );
     
-    command_buffer_.end();
+    command_buffer.end();
 }
 
 void Buffers::transition_image_layout(uint32_t image_index, vk::ImageLayout old_layout, vk::ImageLayout new_layout,
@@ -133,5 +145,5 @@ void Buffers::transition_image_layout(uint32_t image_index, vk::ImageLayout old_
         .pImageMemoryBarriers = &barrier
     };
     
-    command_buffer_.pipelineBarrier2(dependency_info);
+    command_buffer_[application_->drawer.get_frame_index()].pipelineBarrier2(dependency_info);
 }

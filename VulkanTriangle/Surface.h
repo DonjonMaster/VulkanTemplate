@@ -22,6 +22,8 @@ public:
     void create_swap_chain();
     void create_image_views();
     
+    void recreate_swap_chain();
+    
 private:
     // Forward declaration
     Application* application_ = nullptr;
@@ -34,6 +36,8 @@ private:
     std::vector<vk::Image> swap_chain_images_;
     vk::SurfaceFormatKHR swap_chain_surface_format;
     vk::Extent2D swap_chain_extent_;
+    
+    void cleanup_swap_chain();
     
     // Image views
     std::vector<vk::raii::ImageView> swap_chain_image_views_;

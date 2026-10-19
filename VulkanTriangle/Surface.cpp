@@ -117,6 +117,37 @@ void Surface::create_image_views()
     }
 }
 
+void Surface::recreate_swap_chain()
+{
+    // Get window
+    GLFWwindow* window = application_->window;
+    
+    int width = 0, height = 0;
+    glfwGetFramebufferSize(window, &width, &height);
+    // if the window has a nul size (minimized), freeze the window)
+    while ((width == 0 || height == 0) && !glfwWindowShouldClose(window))
+    {
+        glfwGetFramebufferSize(window, &width, &height);
+        glfwWaitEvents();
+    }
+    if (glfwWindowShouldClose(window))
+    {
+        return;
+    }
+    application_->renderer.get_device().waitIdle();
+    
+    cleanup_swap_chain();
+    
+    create_swap_chain();
+    create_image_views();
+}
+
+
+void Surface::cleanup_swap_chain()
+{
+    swap_chain_image_views_.clear();
+    swap_chain_ = nullptr;
+}
 
 vk::SurfaceFormatKHR Surface::choose_swap_surface_format(std::vector<vk::SurfaceFormatKHR> const& available_formats)
 {

@@ -13,11 +13,16 @@ public:
     void draw_frame();
     void create_sync_objects();
     
-private:
+    const int& get_max_frames_in_flights();
+    uint32_t& get_frame_index();
     
-    vk::raii::Semaphore present_complete_semaphore = nullptr;
-    vk::raii::Semaphore render_finished_semaphore = nullptr;
-    vk::raii::Fence draw_fence = nullptr;
+private:
+    const int MAX_FRAMES_IN_FLIGHTS = 2;
+    uint32_t frame_index_ = 0;
+    
+    std::vector<vk::raii::Semaphore> present_complete_semaphores_;
+    std::vector<vk::raii::Semaphore> render_finished_semaphore_;
+    std::vector<vk::raii::Fence> in_flight_fences_;
     
     Application* application_;
     vk::raii::Device& device;
