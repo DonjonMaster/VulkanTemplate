@@ -1,6 +1,7 @@
 ﻿#include "Buffers.h"
 
 #include "Application.h"
+#include "Vertex.h"
 
 Buffers::Buffers(Application* application) : application_(application)
 {
@@ -31,6 +32,38 @@ void Buffers::create_command_buffer()
     };
 
     command_buffer_ = vk::raii::CommandBuffers(application_->renderer.get_device(), allocate_info);
+}
+
+void Buffers::create_vertex_buffer()
+{
+    // Assign Buffer
+    vk::BufferCreateInfo buffer_info{
+        .size = sizeof(vertices[0]) * vertices.size(),
+        .usage = vk::BufferUsageFlagBits::eVertexBuffer,
+        .sharingMode = vk::SharingMode::eExclusive
+    };
+    vertex_buffer_ = vk::raii::Buffer(application_->renderer.get_device(), buffer_info);
+    
+    // Get suitable memory
+    vk::MemoryRequirements memory_requirements = vertex_buffer_.getMemoryRequirements();
+    
+    vk::MemoryAllocateInfo memory_allocate_info{
+        .allocationSize = memory_requirements.size,
+        .memoryTypeIndex = application_->renderer.find_memory_type(
+            memory_requirements.memoryTypeBits,
+            vk::MemoryPropertyFlagBits::eHostVisible |
+            vk::MemoryPropertyFlagBits::eHostCoherent
+            )
+    };
+    
+    // Allocate memory to buffer
+    vertex_buffer_memory = vk::raii::DeviceMemory(application_->renderer.get_device(), memory_allocate_info);
+    vertex_buffer_.bindMemory(*vertex_buffer_memory, 0);
+    
+    // Copy vertex data to buffer
+    void* data = vertex_buffer_memory.mapMemory(0, buffer_info.size);
+    memcpy(data, vertices.data(), buffer_info.size);
+    vertex_buffer_memory.unmapMemory();
 }
 
 std::vector<vk::raii::CommandBuffer>& Buffers::get_command_buffer()
@@ -88,6 +121,8 @@ void Buffers::record_command_buffer(uint32_t image_index)
     command_buffer.beginRendering(rendering_info);
     
     command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, *application_->graphics_pipeline.get_graphics_pipeline_());
+    // Bind the vertex buffer
+    command_buffer.bindVertexBuffers(0, *vertex_buffer_, {0});
     
     command_buffer.setViewport(0, vk::Viewport(
         0.0f, 
@@ -99,7 +134,7 @@ void Buffers::record_command_buffer(uint32_t image_index)
     
     command_buffer.setScissor(0, vk::Rect2D(vk::Offset2D(0, 0), swap_chain_extent));
     
-    command_buffer.draw(3, 1, 0, 0);
+    command_buffer.draw(static_cast<uint32_t>(vertices.size()), 1, 0, 0);
     
     command_buffer.endRendering();
     

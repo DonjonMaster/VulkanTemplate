@@ -12,6 +12,7 @@ public:
     
     void create_command_pool();
     void create_command_buffer();
+    void create_vertex_buffer();
     
     void record_command_buffer(uint32_t image_index);
     
@@ -28,6 +29,9 @@ private:
     vk::raii::CommandPool command_pool_ = nullptr;
     // CommandBuffer are automatically freed when their command pool is destroyed
     std::vector<vk::raii::CommandBuffer> command_buffer_;
+    // Buffer for vertices
+    vk::raii::Buffer vertex_buffer_ = nullptr;
+    vk::raii::DeviceMemory vertex_buffer_memory = nullptr;
     
     // METHODS
     

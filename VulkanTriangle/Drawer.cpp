@@ -20,8 +20,8 @@ void Drawer::draw_frame()
     
     auto [result, image_index] = application_->surface.get_swap_chain().acquireNextImage(UINT64_MAX, *present_complete_semaphores_[frame_index_], nullptr);
     
-    // If the swap chain is out of date, we should recreate it
-    if (result == vk::Result::eErrorOutOfDateKHR)
+    // If the window was resized OR the swap chain is out of date, we should recreate the swap chain
+    if (application_->buffers.get_frame_buffer_resized() || result == vk::Result::eErrorOutOfDateKHR)
     {
         application_->buffers.get_frame_buffer_resized() = false;
         application_->surface.recreate_swap_chain();

@@ -1,6 +1,7 @@
 ﻿#include "GraphicsPipeline.h"
 
 #include "Application.h"
+#include "Vertex.h"
 
 GraphicsPipeline::GraphicsPipeline(Application* application) : application_(application)
 {
@@ -33,7 +34,15 @@ void GraphicsPipeline::create_graphics_pipeline()
         .pDynamicStates = dynamic_states.data()
     };
     
-    vk::PipelineVertexInputStateCreateInfo vertex_input_info;
+    auto binding_description = Vertex::get_binding_description();
+    auto attribute_descriptions = Vertex::get_attribute_descriptions();
+    
+    vk::PipelineVertexInputStateCreateInfo vertex_input_info{
+        .vertexBindingDescriptionCount = 1,
+        .pVertexBindingDescriptions = &binding_description,
+        .vertexAttributeDescriptionCount = static_cast<uint32_t>(attribute_descriptions.size()),
+        .pVertexAttributeDescriptions = attribute_descriptions.data()
+    };
     
     vk::PipelineInputAssemblyStateCreateInfo input_assembly{
         .topology = vk::PrimitiveTopology::eTriangleList

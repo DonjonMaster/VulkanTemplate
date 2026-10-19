@@ -252,6 +252,22 @@ uint32_t Renderer::get_queue_index()
     return queue_index;
 }
 
+uint32_t Renderer::find_memory_type(uint32_t type_filter, vk::MemoryPropertyFlags properties)
+{
+    vk::PhysicalDeviceMemoryProperties memory_properties = physical_device_.getMemoryProperties();
+    
+    // Find suitable memory type
+    for (uint32_t i = 0; i < memory_properties.memoryTypeCount; i++)
+    {
+        if ((type_filter & (1 << i)) && (memory_properties.memoryTypes[i].propertyFlags & properties) == properties)
+        {
+            return i;
+        }
+    }
+    
+    throw std::runtime_error("failed to find suitable memory type!");
+}
+
 
 std::vector<const char*> Renderer::get_required_instance_extensions()
 {
