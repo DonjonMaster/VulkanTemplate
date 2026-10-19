@@ -7,7 +7,7 @@ struct Vertex
     glm::vec2 pos;
     glm::vec3 color;
     
-    // Vertex binding describes at wich rate to load data from memory throughout the verticies (number of bytes)
+    // Vertex binding describes at which rate to load data from memory throughout the verticies (number of bytes)
     static vk::VertexInputBindingDescription get_binding_description()
     {
         return {.binding = 0, .stride = sizeof(Vertex), .inputRate = vk::VertexInputRate::eVertex};

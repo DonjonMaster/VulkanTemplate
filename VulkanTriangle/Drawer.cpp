@@ -87,6 +87,12 @@ void Drawer::create_sync_objects()
     {
         render_finished_semaphore_.emplace_back(device, vk::SemaphoreCreateInfo());
     }
+    
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHTS; i++)
+    {
+        present_complete_semaphores_.emplace_back(device, vk::SemaphoreCreateInfo());
+        in_flight_fences_.emplace_back(device, vk::FenceCreateInfo{.flags = vk::FenceCreateFlagBits::eSignaled});
+    }
 }
 
 const int& Drawer::get_max_frames_in_flights()

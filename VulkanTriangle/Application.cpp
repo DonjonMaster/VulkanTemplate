@@ -1,5 +1,7 @@
 ﻿#include "Application.h"
 
+#include <iostream>
+
 Application::Application():renderer(this),surface(this), graphics_pipeline(this), buffers(this), drawer(this)
 {
     
@@ -17,6 +19,7 @@ void Application::run()
     {
         glfwPollEvents();
         drawer.draw_frame();
+        std::cout << "Draw frame" << '\n';
     }
     
     renderer.get_device().waitIdle();
@@ -46,16 +49,17 @@ void Application::init_vulkan()
     
     renderer.create_instance();
     renderer.setup_debug_callback();
+    surface.create_surface();
     renderer.pick_physical_device();
     renderer.create_logical_device();
     
-    surface.create_surface();
     surface.create_swap_chain();
     surface.create_image_views();
     
     graphics_pipeline.create_graphics_pipeline();
     
     buffers.create_command_pool();
+    buffers.create_vertex_buffer();
     buffers.create_command_buffer();
     
     drawer.create_sync_objects();

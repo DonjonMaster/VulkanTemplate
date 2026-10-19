@@ -9,7 +9,8 @@ GraphicsPipeline::GraphicsPipeline(Application* application) : application_(appl
 
 void GraphicsPipeline::create_graphics_pipeline()
 {
-   vk::raii::ShaderModule shader_module = create_shader_module(read_file("shaders/slang.spv"));
+    auto shader_code = read_file("shaders/slang.spv");
+    auto shader_module = create_shader_module(shader_code);
     
     // Vertex shader
     vk::PipelineShaderStageCreateInfo vert_shader_stage_info{
@@ -27,7 +28,7 @@ void GraphicsPipeline::create_graphics_pipeline()
     
     vk::PipelineShaderStageCreateInfo shader_stages[] = {vert_shader_stage_info, frag_shader_stage_info};
     
-    std::vector<vk::DynamicState> dynamic_states = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+    std::vector dynamic_states = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
     
     vk::PipelineDynamicStateCreateInfo dynamic_state{
         .dynamicStateCount = static_cast<uint32_t>(dynamic_states.size()),
@@ -85,7 +86,7 @@ void GraphicsPipeline::create_graphics_pipeline()
     
     vk::PipelineColorBlendAttachmentState color_blend_attachment{
         .blendEnable = vk::True,
-        .srcColorBlendFactor = vk::BlendFactor::eSrc1Alpha,
+        .srcColorBlendFactor = vk::BlendFactor::eSrcAlpha,
         .dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
         .colorBlendOp = vk::BlendOp::eAdd,
         .srcAlphaBlendFactor = vk::BlendFactor::eOne,
@@ -154,6 +155,14 @@ std::vector<char> GraphicsPipeline::read_file(const std::string& filename)
     {
         throw std::runtime_error("failed to open file!");
     }
+    
+    std::vector<char> buffer(file.tellg());
+    
+    file.seekg(0, std::ios::beg);
+    file.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
+    file.close();
+    
+    return buffer;
 }
 
 vk::raii::ShaderModule GraphicsPipeline::create_shader_module(const std::vector<char>& code) const
@@ -163,7 +172,7 @@ vk::raii::ShaderModule GraphicsPipeline::create_shader_module(const std::vector<
         .pCode = reinterpret_cast<const uint32_t*>(code.data()) 
     };
     
-    vk::raii::ShaderModule shader_module{application_->renderer.get_device(), create_info};
+    vk::raii::ShaderModule shader_module(application_->renderer.get_device(), create_info);
     
     return shader_module;
 }
