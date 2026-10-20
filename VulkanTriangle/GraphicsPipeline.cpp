@@ -7,6 +7,76 @@ GraphicsPipeline::GraphicsPipeline(Application* application) : application_(appl
 {
 }
 
+void GraphicsPipeline::create_descriptor_pool()
+{
+    vk::DescriptorPoolSize pool_size{
+        .type = vk::DescriptorType::eUniformBuffer,
+        .descriptorCount = static_cast<uint32_t>(application_->drawer.get_max_frames_in_flights())
+    };
+    
+    vk::DescriptorPoolCreateInfo pool_info{
+        .flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
+        .maxSets = static_cast<uint32_t>(application_->drawer.get_max_frames_in_flights()),
+        .poolSizeCount = 1,
+        .pPoolSizes = &pool_size
+    };
+    
+    descriptor_pool_ = vk::raii::DescriptorPool(application_->renderer.get_device(), pool_info);
+}
+
+void GraphicsPipeline::create_descriptor_set_layout()
+{
+    vk::DescriptorSetLayoutBinding ubo_layout_binding{
+        .binding = 0,
+        .descriptorType = vk::DescriptorType::eUniformBuffer,
+        .descriptorCount = 1,
+        .stageFlags = vk::ShaderStageFlagBits::eVertex
+    };
+    
+    vk::DescriptorSetLayoutCreateInfo layout_info{.bindingCount = 1, .pBindings = &ubo_layout_binding};
+    descriptor_set_layout_ = vk::raii::DescriptorSetLayout(application_->renderer.get_device(), layout_info);
+    
+    vk::PipelineLayoutCreateInfo pipeline_layout_info{
+        .setLayoutCount = 1,
+        .pSetLayouts = &*descriptor_set_layout_,
+        .pushConstantRangeCount = 0
+    };
+}
+
+void GraphicsPipeline::create_descriptor_sets()
+{
+    std::vector<vk::DescriptorSetLayout> layouts(application_->drawer.get_max_frames_in_flights(), *descriptor_set_layout_);
+    
+    vk::DescriptorSetAllocateInfo allocate_info{
+        .descriptorPool = descriptor_pool_,
+        .descriptorSetCount = static_cast<uint32_t>(layouts.size()),
+        .pSetLayouts = layouts.data()
+    };
+    
+    descriptor_sets_ = application_->renderer.get_device().allocateDescriptorSets(allocate_info);
+    
+    for (size_t i = 0; i < application_->drawer.get_max_frames_in_flights(); i++)
+    {
+        vk::DescriptorBufferInfo buffer_info{
+            .buffer = application_->buffers.get_uniform_buffers()[i],
+            .offset = 0,
+            .range = sizeof(Buffers::UniformBufferObject)
+        };
+        
+        vk::WriteDescriptorSet descriptor_write{
+            .dstSet = descriptor_sets_[i],
+            .dstBinding = 0,
+            .dstArrayElement = 0,
+            .descriptorCount = 1,
+            .descriptorType = vk::DescriptorType::eUniformBuffer,
+            .pBufferInfo = &buffer_info
+        };
+        
+        application_->renderer.get_device().updateDescriptorSets(descriptor_write, {});
+    }
+    
+}
+
 void GraphicsPipeline::create_graphics_pipeline()
 {
     auto shader_code = read_file("shaders/slang.spv");
@@ -74,7 +144,7 @@ void GraphicsPipeline::create_graphics_pipeline()
         .rasterizerDiscardEnable = vk::False,
         .polygonMode = vk::PolygonMode::eFill,
         .cullMode = vk::CullModeFlagBits::eBack,
-        .frontFace = vk::FrontFace::eClockwise,
+        .frontFace = vk::FrontFace::eCounterClockwise,
         .depthBiasEnable = vk::False,
         .lineWidth = 1.0f
     };
@@ -137,14 +207,23 @@ void GraphicsPipeline::create_graphics_pipeline()
     graphics_pipeline_ = vk::raii::Pipeline(
         application_->renderer.get_device(), 
         nullptr, 
-        pipeline_create_info_chain.
-        get<vk::GraphicsPipelineCreateInfo>()
+        pipeline_create_info_chain.get<vk::GraphicsPipelineCreateInfo>()
         );
 }
 
 vk::raii::Pipeline& GraphicsPipeline::get_graphics_pipeline_()
 {
     return graphics_pipeline_;
+}
+
+vk::raii::PipelineLayout& GraphicsPipeline::get_pipeline_layout()
+{
+    return pipeline_layout_;
+}
+
+std::vector<vk::raii::DescriptorSet>& GraphicsPipeline::get_descriptor_sets()
+{
+    return descriptor_sets_;
 }
 
 std::vector<char> GraphicsPipeline::read_file(const std::string& filename)

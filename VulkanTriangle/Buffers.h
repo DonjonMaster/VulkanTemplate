@@ -1,5 +1,10 @@
 ﻿#pragma once
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <chrono>
+
 #include "Dependencies.h"
 
 class Application;
@@ -13,6 +18,14 @@ public:
     void create_command_pool();
     void create_command_buffer();
     void create_vertex_buffer();
+    std::pair<vk::raii::Buffer, vk::raii::DeviceMemory> create_buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties);
+    void create_index_buffer();
+    void create_uniform_buffers();
+    
+    void update_uniform_buffers(uint32_t current_image);
+    
+    
+    void copy_buffer(vk::raii::Buffer & src_buffer, vk::raii::Buffer & dst_buffer, vk::DeviceSize size);
     
     void record_command_buffer(uint32_t image_index);
     
@@ -21,8 +34,19 @@ public:
     static void framebuffer_resize_callback(GLFWwindow* window, int width, int height);
     
     
+    
     bool frame_buffer_resized = false;
     
+    struct UniformBufferObject
+    {
+        glm::mat4 model;
+        glm::mat4 view;
+        glm::mat4 proj;
+    };
+    
+    
+    std::vector<vk::raii::Buffer>& get_uniform_buffers();
+
 private:
     // VARIABLES
     
@@ -33,6 +57,16 @@ private:
     // Buffer for vertices
     vk::raii::Buffer vertex_buffer_ = nullptr;
     vk::raii::DeviceMemory vertex_buffer_memory = nullptr;
+    // Buffer for index
+    vk::raii::Buffer index_buffer_ = nullptr;
+    vk::raii::DeviceMemory index_buffer_memory = nullptr;
+    // Uniform Buffers
+    vk::raii::Buffer index_buffer = nullptr;
+    vk::raii::DeviceMemory index_buffer_Memory = nullptr;
+    
+    std::vector<vk::raii::Buffer> uniform_buffers_;
+    std::vector<vk::raii::DeviceMemory> uniform_buffers_memory;
+    std::vector<void *> uniform_buffers_mapped;
     
     // METHODS
     

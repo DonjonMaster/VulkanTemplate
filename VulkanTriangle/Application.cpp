@@ -55,10 +55,18 @@ void Application::init_vulkan()
     surface.create_swap_chain();
     surface.create_image_views();
     
+    
+    graphics_pipeline.create_descriptor_set_layout();
     graphics_pipeline.create_graphics_pipeline();
     
     buffers.create_command_pool();
     buffers.create_vertex_buffer();
+    buffers.create_index_buffer();
+    buffers.create_uniform_buffers();
+    
+    graphics_pipeline.create_descriptor_pool();
+    graphics_pipeline.create_descriptor_sets();
+    
     buffers.create_command_buffer();
     
     drawer.create_sync_objects();
