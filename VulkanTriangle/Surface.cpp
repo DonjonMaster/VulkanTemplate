@@ -81,7 +81,8 @@ void Surface::create_swap_chain()
         .clipped = true
     };
     
-    
+    swap_chain_ = vk::raii::SwapchainKHR(application_->renderer.get_device(), swap_chain_create_info_);
+    swap_chain_images_ = swap_chain_.getImages();
 }
 
 void Surface::create_image_views()

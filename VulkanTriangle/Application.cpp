@@ -1,6 +1,5 @@
 ﻿#include "Application.h"
 
-#include <iostream>
 
 Application::Application():renderer(this),surface(this), graphics_pipeline(this), buffers(this), drawer(this)
 {
@@ -19,7 +18,6 @@ void Application::run()
     {
         glfwPollEvents();
         drawer.draw_frame();
-        std::cout << "Draw frame" << '\n';
     }
     
     renderer.get_device().waitIdle();
@@ -37,9 +35,10 @@ void Application::init_window()
     glfwInit();
     
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     
     window = glfwCreateWindow(800, 600, "VulkanTriangle", nullptr, nullptr);
+    glfwSetWindowUserPointer(window, this);
     glfwSetFramebufferSizeCallback(window, Buffers::framebuffer_resize_callback);
     
 }

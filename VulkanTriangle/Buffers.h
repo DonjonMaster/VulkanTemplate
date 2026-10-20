@@ -17,13 +17,14 @@ public:
     void record_command_buffer(uint32_t image_index);
     
     std::vector<vk::raii::CommandBuffer>& get_command_buffer();
-    bool& get_frame_buffer_resized();
 
     static void framebuffer_resize_callback(GLFWwindow* window, int width, int height);
     
+    
+    bool frame_buffer_resized = false;
+    
 private:
     // VARIABLES
-    bool frame_buffer_resized;
     
     // CommandPools manage the memory that is used to store buffers
     vk::raii::CommandPool command_pool_ = nullptr;

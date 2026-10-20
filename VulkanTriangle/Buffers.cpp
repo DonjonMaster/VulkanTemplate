@@ -71,11 +71,6 @@ std::vector<vk::raii::CommandBuffer>& Buffers::get_command_buffer()
     return command_buffer_;
 }
 
-bool& Buffers::get_frame_buffer_resized()
-{
-    return frame_buffer_resized;
-}
-
 void Buffers::framebuffer_resize_callback(GLFWwindow* window, int width, int height)
 {
     auto app = reinterpret_cast<Application*>(glfwGetWindowUserPointer(window));
@@ -88,6 +83,8 @@ void Buffers::record_command_buffer(uint32_t image_index)
     
     // Details about the usage of a type of buffer
     auto &command_buffer = command_buffer_[application_->drawer.get_frame_index()];
+    
+    command_buffer.begin({});
     
     // Before rendering (transition from swapchain image to a colored image)
     transition_image_layout(

@@ -1,5 +1,7 @@
 ﻿#include "Drawer.h"
 
+#include <iostream>
+
 #include "Application.h"
 
 Drawer::Drawer(Application* application) : application_(application), device(application_->renderer.get_device())
@@ -11,7 +13,7 @@ Drawer::~Drawer()
 }
 
 void Drawer::draw_frame()
-{
+{    
     auto fence_result = device.waitForFences(*in_flight_fences_[frame_index_], vk::True, UINT64_MAX);
     if (fence_result != vk::Result::eSuccess)
     {
@@ -20,12 +22,6 @@ void Drawer::draw_frame()
     
     auto [result, image_index] = application_->surface.get_swap_chain().acquireNextImage(UINT64_MAX, *present_complete_semaphores_[frame_index_], nullptr);
     
-    // If the window was resized OR the swap chain is out of date, we should recreate the swap chain
-    if (application_->buffers.get_frame_buffer_resized() || result == vk::Result::eErrorOutOfDateKHR)
-    {
-        application_->buffers.get_frame_buffer_resized() = false;
-        application_->surface.recreate_swap_chain();
-    }
     // If the image is not a success, and is not suboptimal, then there is an error with the swap chain image
     if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
     {
@@ -41,6 +37,7 @@ void Drawer::draw_frame()
     application_->buffers.record_command_buffer(image_index);
     
     vk::PipelineStageFlags wait_destination_stage_mask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
+    
     const vk::SubmitInfo submit_info{
         .waitSemaphoreCount = 1,
         .pWaitSemaphores = &*present_complete_semaphores_[frame_index_],
@@ -67,8 +64,11 @@ void Drawer::draw_frame()
     
     // Present the image for flat screen
     result = application_->renderer.get_graphics_queue().presentKHR(present_info_khr);
-    if ((result == vk::Result::eSuboptimalKHR) || (result == vk::Result::eErrorOutOfDateKHR))
+    
+    // If the window was resized OR the swap chain is out of date, we should recreate the swap chain
+    if (application_->buffers.frame_buffer_resized || result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR)
     {
+        application_->buffers.frame_buffer_resized = false;
         application_->surface.recreate_swap_chain();
     }
     else
