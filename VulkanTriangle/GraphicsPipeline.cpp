@@ -35,12 +35,6 @@ void GraphicsPipeline::create_descriptor_set_layout()
     
     vk::DescriptorSetLayoutCreateInfo layout_info{.bindingCount = 1, .pBindings = &ubo_layout_binding};
     descriptor_set_layout_ = vk::raii::DescriptorSetLayout(application_->renderer.get_device(), layout_info);
-    
-    vk::PipelineLayoutCreateInfo pipeline_layout_info{
-        .setLayoutCount = 1,
-        .pSetLayouts = &*descriptor_set_layout_,
-        .pushConstantRangeCount = 0
-    };
 }
 
 void GraphicsPipeline::create_descriptor_sets()
@@ -173,7 +167,8 @@ void GraphicsPipeline::create_graphics_pipeline()
     };
     
     vk::PipelineLayoutCreateInfo pipeline_layout_info{
-        .setLayoutCount = 0,
+        .setLayoutCount = 1,
+        .pSetLayouts = &*descriptor_set_layout_,
         .pushConstantRangeCount = 0,
     };
     

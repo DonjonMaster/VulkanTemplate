@@ -238,10 +238,11 @@ void Buffers::record_command_buffer(uint32_t image_index)
     command_buffer.bindVertexBuffers(0, *vertex_buffer_, {0});
     command_buffer.bindIndexBuffer(*index_buffer_, 0, vk::IndexType::eUint16);
     
-    command_buffer.setViewport(0, vk::Viewport(
+    command_buffer.setViewport(0, 
+        vk::Viewport(
         0.0f, 
-        0.0, 
-        static_cast<float>(swap_chain_extent.width), 
+        static_cast<float>(swap_chain_extent.height), 
+        static_cast<float>(swap_chain_extent.width),
         -static_cast<float>(swap_chain_extent.height),
         0.0f,
         1.0f));

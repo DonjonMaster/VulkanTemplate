@@ -38,6 +38,8 @@ void Drawer::draw_frame()
     
     vk::PipelineStageFlags wait_destination_stage_mask(vk::PipelineStageFlagBits::eColorAttachmentOutput);
     
+    application_->buffers.update_uniform_buffers(frame_index_);
+    
     const vk::SubmitInfo submit_info{
         .waitSemaphoreCount = 1,
         .pWaitSemaphores = &*present_complete_semaphores_[frame_index_],
