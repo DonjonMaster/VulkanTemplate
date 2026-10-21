@@ -33,6 +33,12 @@ public:
 
     static void framebuffer_resize_callback(GLFWwindow* window, int width, int height);
     
+    vk::raii::CommandBuffer begin_single_time_commands();
+    void end_single_time_commands(vk::raii::CommandBuffer&& command_buffer);
+    
+    void transition_image_layout (vk::raii::CommandBuffer& command_buffer, const vk::raii::Image &image, vk::ImageLayout old_layout, vk::ImageLayout new_layout);
+    
+    void copy_buffer_to_image(vk::raii::CommandBuffer& command_buffer, const vk::raii::Buffer& buffer, vk::raii::Image& image, uint32_t width, uint32_t height);
     
     
     bool frame_buffer_resized = false;

@@ -1,5 +1,7 @@
 ﻿#include "Buffers.h"
 
+#include <barrier>
+
 #include "Application.h"
 #include "Vertex.h"
 
@@ -161,25 +163,12 @@ std::vector<vk::raii::Buffer>& Buffers::get_uniform_buffers()
 
 void Buffers::copy_buffer(vk::raii::Buffer& src_buffer, vk::raii::Buffer& dst_buffer, vk::DeviceSize size)
 {
-    vk::CommandBufferAllocateInfo allocate_info{
-        .commandPool = command_pool_,
-        .level = vk::CommandBufferLevel::ePrimary,
-        .commandBufferCount = 1
-    };
-    vk::raii::CommandBuffer command_copy_buffer = std::move(
-        application_->renderer.get_device().allocateCommandBuffers(allocate_info).front()
-        );
     
-    command_copy_buffer.begin({.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
-    command_copy_buffer.copyBuffer(*src_buffer, *dst_buffer, vk::BufferCopy(0, 0, size));
-    command_copy_buffer.end();
+    vk::raii::CommandBuffer command_copy_buffer = begin_single_time_commands();
     
-    application_->renderer.get_graphics_queue().submit(vk::SubmitInfo{
-        .commandBufferCount = 1,
-        .pCommandBuffers = &*command_copy_buffer,
-    }, nullptr);
+    command_copy_buffer.copyBuffer(*src_buffer, *dst_buffer, vk::BufferCopy{.size = size});
     
-    application_->renderer.get_graphics_queue().waitIdle();
+    end_single_time_commands(std::move(command_copy_buffer));
 }
 
 std::vector<vk::raii::CommandBuffer>& Buffers::get_command_buffer()
@@ -274,9 +263,98 @@ void Buffers::record_command_buffer(uint32_t image_index)
     command_buffer.end();
 }
 
+vk::raii::CommandBuffer Buffers::begin_single_time_commands()
+{
+    vk::CommandBufferAllocateInfo allocate_info{
+        .commandPool = command_pool_,
+        .level = vk::CommandBufferLevel::ePrimary,
+        .commandBufferCount = 1
+    };
+    
+    vk::raii::CommandBuffer command_buffer = std::move(vk::raii::CommandBuffers(application_->renderer.get_device(), allocate_info).front());
+
+    vk::CommandBufferBeginInfo begin_info{.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit};
+    command_buffer.begin(begin_info);
+    
+    return std::move(command_buffer);
+}
+
+void Buffers::end_single_time_commands(vk::raii::CommandBuffer&& command_buffer)
+{
+    command_buffer.end();
+    
+    vk::SubmitInfo submit_info{.commandBufferCount = 1, .pCommandBuffers = &*command_buffer};
+    application_->renderer.get_graphics_queue().submit(submit_info, nullptr);
+    application_->renderer.get_graphics_queue().waitIdle();
+}
+
+void Buffers::transition_image_layout(vk::raii::CommandBuffer& command_buffer, const vk::raii::Image& image,
+    vk::ImageLayout old_layout, vk::ImageLayout new_layout)
+{
+    vk::PipelineStageFlags source_stage;
+    vk::PipelineStageFlags destination_stage;
+    
+    vk::ImageMemoryBarrier barrier{
+        .oldLayout = old_layout,
+        .newLayout = new_layout,
+        .srcQueueFamilyIndex = vk::QueueFamilyIgnored,
+        .dstQueueFamilyIndex = vk::QueueFamilyIgnored,
+        .image = image,
+        .subresourceRange = {
+            .aspectMask = vk::ImageAspectFlagBits::eColor,
+            .levelCount = 1,
+            .layerCount = 1
+        }
+    };
+    
+    // If there is no condition (undefined)
+    if (old_layout == vk::ImageLayout::eUndefined && new_layout == vk::ImageLayout::eTransferDstOptimal)
+    {
+        barrier.srcAccessMask = {};
+        barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
+        // The image should be a priority (top of the pipe*line*)
+        source_stage = vk::PipelineStageFlagBits::eTopOfPipe;
+        destination_stage = vk::PipelineStageFlagBits::eTransfer;
+    }
+    // If the image is to be used by shaders
+    else if (old_layout == vk::ImageLayout::eTransferDstOptimal && new_layout == vk::ImageLayout::eShaderReadOnlyOptimal)
+    {
+        barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+        barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+        // The image can be read by shaders
+        source_stage = vk::PipelineStageFlagBits::eTransfer;
+        destination_stage = vk::PipelineStageFlagBits::eFragmentShader;
+    }
+    else
+    {
+        throw std::invalid_argument("unsupported layout transition!");
+    }
+    command_buffer.pipelineBarrier(source_stage, destination_stage, {}, {}, {}, barrier);
+}
+
+void Buffers::copy_buffer_to_image(vk::raii::CommandBuffer& command_buffer, const vk::raii::Buffer& buffer,
+    vk::raii::Image& image, uint32_t width, uint32_t height)
+{
+    vk::BufferImageCopy region{
+        .bufferOffset = 0,
+        .bufferRowLength = 0,
+        .bufferImageHeight = 0,
+        .imageSubresource = {
+            .aspectMask = vk::ImageAspectFlagBits::eColor,
+            .mipLevel = 0,
+            .baseArrayLayer = 0,
+            .layerCount = 1
+        },
+        .imageOffset = {0, 0, 0},
+        .imageExtent = {width, height, 1}
+    };
+    
+    command_buffer.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, region);
+}
+
 void Buffers::transition_image_layout(uint32_t image_index, vk::ImageLayout old_layout, vk::ImageLayout new_layout,
-    vk::AccessFlags2 src_access_mask, vk::AccessFlags2 dst_access_mask, vk::PipelineStageFlags2 src_stage_mask,
-    vk::PipelineStageFlags2 dst_stage_mask)
+                                      vk::AccessFlags2 src_access_mask, vk::AccessFlags2 dst_access_mask, vk::PipelineStageFlags2 src_stage_mask,
+                                      vk::PipelineStageFlags2 dst_stage_mask)
 {
     vk::ImageMemoryBarrier2 barrier = {
         .srcStageMask = src_stage_mask,

@@ -179,6 +179,7 @@
     <ClCompile Include="GraphicsPipeline.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="Surface.cpp" />
+    <ClCompile Include="TextureMapping.cpp" />
     <ClCompile Include="VulkanTriangle.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -190,6 +191,7 @@
     <ClInclude Include="GraphicsPipeline.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="Surface.h" />
+    <ClInclude Include="TextureMapping.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

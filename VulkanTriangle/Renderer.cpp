@@ -169,9 +169,12 @@ bool Renderer::is_device_suitable(const vk::PhysicalDevice& physical_device)
                                                  vk::PhysicalDeviceVulkan13Features,
                                                  vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>();
 
-    bool supports_required_features = features.get<vk::PhysicalDeviceVulkan11Features>().shaderDrawParameters &&
-        features.get<vk::PhysicalDeviceVulkan13Features>().dynamicRendering;
-    features.get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>().extendedDynamicState;
+    bool supports_required_features = 
+        features.get<vk::PhysicalDeviceFeatures2>().features.samplerAnisotropy &&
+        features.get<vk::PhysicalDeviceVulkan11Features>().shaderDrawParameters &&
+        features.get<vk::PhysicalDeviceVulkan13Features>().dynamicRendering &&
+        features.get<vk::PhysicalDeviceVulkan13Features>().synchronization2 &&
+        features.get<vk::PhysicalDeviceExtendedDynamicStateFeaturesEXT>().extendedDynamicState;
     
     // Return true if physicalDevice meets every criteria
     return supports_all_required_extensions && supports_graphics && supports_vulkan1_4 && supports_required_features;

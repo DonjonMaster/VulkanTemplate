@@ -87,34 +87,13 @@ void Surface::create_swap_chain()
 
 void Surface::create_image_views()
 {
-    // At creation, the image swap chain must be empty
     assert(swap_chain_image_views_.empty());
     
-    // Define image information
-    vk::ImageViewCreateInfo image_view_create_info{
-        .viewType = vk::ImageViewType::e2D,
-        .format = swap_chain_surface_format.format,
-        .subresourceRange = {vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1},
-    };
-    
-    // Map the color channels
-    image_view_create_info.components = {
-    vk::ComponentSwizzle::eIdentity, vk::ComponentSwizzle::eIdentity, 
-        vk::ComponentSwizzle::eIdentity, vk::ComponentSwizzle::eIdentity};
-    
-    // Define the image's purpose and which part should be accessed
-    image_view_create_info.subresourceRange = {
-        .aspectMask = vk::ImageAspectFlagBits::eColor, 
-        .levelCount = 1u, 
-        .layerCount = 1u
-    };
-    
+    swap_chain_image_views_.reserve(swap_chain_images_.size());
     // Add the image to the image swap chain
     for (auto &image : swap_chain_images_)
     {
-        image_view_create_info.image = image;
-        vk::raii::Device& device = application_->renderer.get_device();
-        swap_chain_image_views_.emplace_back(device, image_view_create_info);
+        swap_chain_image_views_.emplace_back(application_->texture_mapping.create_image_view(image, swap_chain_surface_format.format));
     }
 }
 

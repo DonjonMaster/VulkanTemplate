@@ -47,7 +47,7 @@ void Drawer::draw_frame()
         .commandBufferCount = 1,
         .pCommandBuffers = &*application_->buffers.get_command_buffer()[frame_index_],
         .signalSemaphoreCount = 1,
-        .pSignalSemaphores = &*render_finished_semaphore_[frame_index_]
+        .pSignalSemaphores = &*render_finished_semaphore_[image_index]
     };
     
     // Render the image
@@ -58,7 +58,7 @@ void Drawer::draw_frame()
     
     const vk::PresentInfoKHR present_info_khr{
         .waitSemaphoreCount = 1,
-        .pWaitSemaphores = &*render_finished_semaphore_[frame_index_],
+        .pWaitSemaphores = &*render_finished_semaphore_[image_index],
         .swapchainCount = 1,
         .pSwapchains = &*application_->surface.get_swap_chain(),
         .pImageIndices = &image_index

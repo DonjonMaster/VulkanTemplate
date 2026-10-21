@@ -5,6 +5,7 @@
 #include "GraphicsPipeline.h"
 #include "Renderer.h"
 #include "Surface.h"
+#include "TextureMapping.h"
 
 class Application
 {
@@ -21,6 +22,7 @@ public:
     GraphicsPipeline graphics_pipeline;
     Buffers buffers;
     Drawer drawer;
+    TextureMapping texture_mapping;
     
     void init();
     void run();

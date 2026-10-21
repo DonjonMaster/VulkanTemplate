@@ -9,16 +9,16 @@ GraphicsPipeline::GraphicsPipeline(Application* application) : application_(appl
 
 void GraphicsPipeline::create_descriptor_pool()
 {
-    vk::DescriptorPoolSize pool_size{
-        .type = vk::DescriptorType::eUniformBuffer,
-        .descriptorCount = static_cast<uint32_t>(application_->drawer.get_max_frames_in_flights())
-    };
+    std::array<vk::DescriptorPoolSize, 2> pool_sizes{
+        {
+            {.type = vk::DescriptorType::eUniformBuffer, .descriptorCount = static_cast<uint32_t>(application_->drawer.get_max_frames_in_flights())},
+            {.type = vk::DescriptorType::eCombinedImageSampler, .descriptorCount = static_cast<uint32_t>(application_->drawer.get_max_frames_in_flights())}}};
     
     vk::DescriptorPoolCreateInfo pool_info{
         .flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet,
         .maxSets = static_cast<uint32_t>(application_->drawer.get_max_frames_in_flights()),
-        .poolSizeCount = 1,
-        .pPoolSizes = &pool_size
+        .poolSizeCount = static_cast<uint32_t>(pool_sizes.size()),
+        .pPoolSizes = pool_sizes.data()
     };
     
     descriptor_pool_ = vk::raii::DescriptorPool(application_->renderer.get_device(), pool_info);
@@ -26,14 +26,26 @@ void GraphicsPipeline::create_descriptor_pool()
 
 void GraphicsPipeline::create_descriptor_set_layout()
 {
-    vk::DescriptorSetLayoutBinding ubo_layout_binding{
-        .binding = 0,
-        .descriptorType = vk::DescriptorType::eUniformBuffer,
-        .descriptorCount = 1,
-        .stageFlags = vk::ShaderStageFlagBits::eVertex
+    
+    std::array<vk::DescriptorSetLayoutBinding, 2> bindings{
+        {
+            {
+                .binding = 0, 
+                .descriptorType = vk::DescriptorType::eUniformBuffer, 
+                .descriptorCount = 1, 
+                .stageFlags = vk::ShaderStageFlagBits::eVertex
+            },
+            {
+                .binding = 1, 
+                .descriptorType = vk::DescriptorType::eCombinedImageSampler, 
+                .descriptorCount = 1, 
+                .stageFlags = vk::ShaderStageFlagBits::eFragment
+            }
+        }
     };
     
-    vk::DescriptorSetLayoutCreateInfo layout_info{.bindingCount = 1, .pBindings = &ubo_layout_binding};
+    vk::DescriptorSetLayoutCreateInfo layout_info{.bindingCount = static_cast<uint32_t>(bindings.size()), .pBindings = bindings.data()};
+    
     descriptor_set_layout_ = vk::raii::DescriptorSetLayout(application_->renderer.get_device(), layout_info);
 }
 
@@ -57,16 +69,33 @@ void GraphicsPipeline::create_descriptor_sets()
             .range = sizeof(Buffers::UniformBufferObject)
         };
         
-        vk::WriteDescriptorSet descriptor_write{
-            .dstSet = descriptor_sets_[i],
-            .dstBinding = 0,
-            .dstArrayElement = 0,
-            .descriptorCount = 1,
-            .descriptorType = vk::DescriptorType::eUniformBuffer,
-            .pBufferInfo = &buffer_info
+        vk::DescriptorImageInfo image_info{
+            .sampler = application_->texture_mapping.get_texture_sampler(),
+            .imageView = application_->texture_mapping.get_texture_image_view(),
+            .imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal
         };
         
-        application_->renderer.get_device().updateDescriptorSets(descriptor_write, {});
+        std::array<vk::WriteDescriptorSet, 2> descriptor_writes{
+            {
+                {
+                    .dstSet = descriptor_sets_[i],
+                    .dstBinding = 0,
+                    .dstArrayElement = 0,
+                    .descriptorCount = 1,
+                    .descriptorType = vk::DescriptorType::eUniformBuffer,
+                    .pBufferInfo = &buffer_info
+                },
+                {
+                    .dstSet = descriptor_sets_[i],
+                    .dstBinding = 1,
+                    .dstArrayElement = 0,
+                    .descriptorCount = 1,
+                    .descriptorType = vk::DescriptorType::eCombinedImageSampler,
+                    .pImageInfo = &image_info}
+                }
+        };
+        
+        application_->renderer.get_device().updateDescriptorSets(descriptor_writes, {});
     }
     
 }
