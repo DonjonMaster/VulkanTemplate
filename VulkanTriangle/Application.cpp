@@ -1,7 +1,7 @@
 ﻿#include "Application.h"
 
 
-Application::Application():renderer(this),surface(this), graphics_pipeline(this), buffers(this), drawer(this), texture_mapping(this)
+Application::Application():renderer(this),surface(this), graphics_pipeline(this), buffers(this), drawer(this), texture_mapping(this), depth_handler(this)
 {
     
 }
@@ -55,11 +55,12 @@ void Application::init_vulkan()
     surface.create_swap_chain();
     surface.create_image_views();
     
-    
     graphics_pipeline.create_descriptor_set_layout();
     graphics_pipeline.create_graphics_pipeline();
     
     buffers.create_command_pool();
+    
+    depth_handler.create_depth_ressources();
     
     texture_mapping.create_texture_image();
     texture_mapping.create_texture_image_view();

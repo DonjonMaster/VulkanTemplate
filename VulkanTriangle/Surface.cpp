@@ -93,7 +93,7 @@ void Surface::create_image_views()
     // Add the image to the image swap chain
     for (auto &image : swap_chain_images_)
     {
-        swap_chain_image_views_.emplace_back(application_->texture_mapping.create_image_view(image, swap_chain_surface_format.format));
+        swap_chain_image_views_.emplace_back(application_->texture_mapping.create_image_view(image, swap_chain_surface_format.format, vk::ImageAspectFlagBits::eColor));
     }
 }
 
@@ -120,6 +120,7 @@ void Surface::recreate_swap_chain()
     
     create_swap_chain();
     create_image_views();
+    application_->depth_handler.create_depth_ressources();
 }
 
 

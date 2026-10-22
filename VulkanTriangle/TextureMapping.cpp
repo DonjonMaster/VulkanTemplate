@@ -82,18 +82,18 @@ std::pair<vk::raii::Image, vk::raii::DeviceMemory> TextureMapping::create_image(
     return {std::move(image), std::move(image_memory)};
 }
 
-vk::raii::ImageView TextureMapping::create_image_view(vk::Image const& image, vk::Format format)
+vk::raii::ImageView TextureMapping::create_image_view(vk::Image const& image, vk::Format format, vk::ImageAspectFlags aspect_flags)
 {
     vk::ImageViewCreateInfo image_view_create_info{
         .image = image,
         .viewType = vk::ImageViewType::e2D,
         .format = format,
         .subresourceRange = {
-        .aspectMask = vk::ImageAspectFlagBits::eColor,
-        .baseMipLevel = 0,
-        .levelCount = 1,
-        .baseArrayLayer = 0,
-        .layerCount = 1
+            .aspectMask = aspect_flags,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = 1
         }
     };
     return vk::raii::ImageView(application_->renderer.get_device(), image_view_create_info);
@@ -101,7 +101,7 @@ vk::raii::ImageView TextureMapping::create_image_view(vk::Image const& image, vk
 
 void TextureMapping::create_texture_image_view()
 {
-    texture_image_view_ = create_image_view(*texture_image, vk::Format::eR8G8B8A8Srgb);
+    texture_image_view_ = create_image_view(*texture_image, vk::Format::eR8G8B8A8Srgb, vk::ImageAspectFlagBits::eColor);
 }
 
 void TextureMapping::create_texture_sampler()

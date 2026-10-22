@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "Buffers.h"
+#include "DepthHandler.h"
 #include "Drawer.h"
 #include "GraphicsPipeline.h"
 #include "Renderer.h"
@@ -23,6 +24,7 @@ public:
     Buffers buffers;
     Drawer drawer;
     TextureMapping texture_mapping;
+    DepthHandler depth_handler;
     
     void init();
     void run();

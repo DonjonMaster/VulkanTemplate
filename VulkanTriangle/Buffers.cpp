@@ -193,17 +193,29 @@ void Buffers::record_command_buffer(uint32_t image_index)
     
     // Before rendering (transition from swapchain image to a colored image)
     transition_image_layout(
-        image_index,
+        application_->surface.get_swap_chain_images_()[image_index],
         vk::ImageLayout::eUndefined,
         vk::ImageLayout::eColorAttachmentOptimal,
         {},
         vk::AccessFlagBits2::eColorAttachmentWrite,
         vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-        vk::PipelineStageFlagBits2::eColorAttachmentOutput
+        vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+        vk::ImageAspectFlagBits::eColor
         );
+    // Transition from depth image to depth attachment layout
+    transition_image_layout(
+    *application_->depth_handler.get_depth_image(),
+    vk::ImageLayout::eUndefined,
+    vk::ImageLayout::eDepthAttachmentOptimal,
+    vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+    vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+    vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+    vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+    vk::ImageAspectFlagBits::eDepth
+    );
     
     // Setup color attachment
-    vk::ClearValue clear_color = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 1.0f);
+    vk::ClearValue clear_color = vk::ClearColorValue(0.1333f, 0.0902f, 0.1255f, 1.0);
     vk::RenderingAttachmentInfo attachmentInfo = {
         .imageView = application_->surface.get_swap_chain_image_views()[image_index],
         .imageLayout = vk::ImageLayout::eColorAttachmentOptimal,
@@ -212,11 +224,22 @@ void Buffers::record_command_buffer(uint32_t image_index)
         .clearValue = clear_color
     };
     
+    // Setup depth attachment
+    vk::ClearValue clear_depth = vk::ClearDepthStencilValue(1.0f, 0);
+    vk::RenderingAttachmentInfo depth_attachment_info = {
+        .imageView = application_->depth_handler.get_depth_image_view(),
+        .imageLayout = vk::ImageLayout::eDepthAttachmentOptimal,
+        .loadOp = vk::AttachmentLoadOp::eClear,
+        .storeOp = vk::AttachmentStoreOp::eDontCare,
+        .clearValue = clear_depth
+    };
+    
     vk::RenderingInfo rendering_info = {
         .renderArea = {.offset = {0, 0}, .extent = swap_chain_extent},
         .layerCount = 1,
         .colorAttachmentCount = 1,
-        .pColorAttachments = &attachmentInfo
+        .pColorAttachments = &attachmentInfo,
+        .pDepthAttachment = &depth_attachment_info
     };
     
     // Begin rendering
@@ -251,13 +274,14 @@ void Buffers::record_command_buffer(uint32_t image_index)
     
     // After rendering (transition from swapchain image to a presentable image for flat screens)
     transition_image_layout(
-        image_index,
+        application_->surface.get_swap_chain_images_()[image_index],
         vk::ImageLayout::eColorAttachmentOptimal,
         vk::ImageLayout::ePresentSrcKHR,
         vk::AccessFlagBits2::eColorAttachmentWrite,
         {},
         vk::PipelineStageFlagBits2::eColorAttachmentOutput,
-        vk::PipelineStageFlagBits2::eBottomOfPipe
+        vk::PipelineStageFlagBits2::eBottomOfPipe,
+        vk::ImageAspectFlagBits::eColor
         );
     
     command_buffer.end();
@@ -352,9 +376,14 @@ void Buffers::copy_buffer_to_image(vk::raii::CommandBuffer& command_buffer, cons
     command_buffer.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, region);
 }
 
-void Buffers::transition_image_layout(uint32_t image_index, vk::ImageLayout old_layout, vk::ImageLayout new_layout,
-                                      vk::AccessFlags2 src_access_mask, vk::AccessFlags2 dst_access_mask, vk::PipelineStageFlags2 src_stage_mask,
-                                      vk::PipelineStageFlags2 dst_stage_mask)
+void Buffers::transition_image_layout(vk::Image image,
+                                      vk::ImageLayout old_layout, 
+                                      vk::ImageLayout new_layout,
+                                      vk::AccessFlags2 src_access_mask, 
+                                      vk::AccessFlags2 dst_access_mask, 
+                                      vk::PipelineStageFlags2 src_stage_mask,
+                                      vk::PipelineStageFlags2 dst_stage_mask,
+                                      vk::ImageAspectFlags image_aspect_flags)
 {
     vk::ImageMemoryBarrier2 barrier = {
         .srcStageMask = src_stage_mask,
@@ -365,13 +394,14 @@ void Buffers::transition_image_layout(uint32_t image_index, vk::ImageLayout old_
         .newLayout = new_layout,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image = application_->surface.get_swap_chain_images_()[image_index],
+        .image = image,
         .subresourceRange = {
-        .aspectMask = vk::ImageAspectFlagBits::eColor,
-        .baseMipLevel = 0,
-        .levelCount = 1,
-        .baseArrayLayer = 0,
-        .layerCount = 1}
+            .aspectMask = image_aspect_flags,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = 1
+        }
     };
     
     vk::DependencyInfo dependency_info = {

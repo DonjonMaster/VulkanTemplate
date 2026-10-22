@@ -166,7 +166,7 @@ void GraphicsPipeline::create_graphics_pipeline()
         .depthClampEnable = vk::False,
         .rasterizerDiscardEnable = vk::False,
         .polygonMode = vk::PolygonMode::eFill,
-        .cullMode = vk::CullModeFlagBits::eBack,
+        .cullMode = vk::CullModeFlagBits::eNone,
         .frontFace = vk::FrontFace::eCounterClockwise,
         .depthBiasEnable = vk::False,
         .lineWidth = 1.0f
@@ -205,7 +205,8 @@ void GraphicsPipeline::create_graphics_pipeline()
     
     vk::PipelineRenderingCreateInfo pipeline_rendering_create_info{
         .colorAttachmentCount = 1,
-        .pColorAttachmentFormats = &application_->surface.get_swap_chain_surface_format().format
+        .pColorAttachmentFormats = &application_->surface.get_swap_chain_surface_format().format,
+        .depthAttachmentFormat = application_->depth_handler.get_depth_format()
     };
     
     vk::GraphicsPipelineCreateInfo graphics_pipeline_create_info = 
@@ -217,6 +218,7 @@ void GraphicsPipeline::create_graphics_pipeline()
         .pViewportState = &viewport_state,
         .pRasterizationState = &rasterizer,
         .pMultisampleState = &multisampling,
+        .pDepthStencilState = &depth_stencil_,
         .pColorBlendState = &color_blending,
         .pDynamicState = &dynamic_state,
         .layout = pipeline_layout_,

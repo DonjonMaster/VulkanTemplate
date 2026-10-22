@@ -15,7 +15,7 @@ public:
         vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties);
     
     
-    vk::raii::ImageView create_image_view(vk::Image const& image, vk::Format format);
+    vk::raii::ImageView create_image_view(vk::Image const& image, vk::Format format, vk::ImageAspectFlags aspect_flags);
     void create_texture_image_view();
     
     void create_texture_sampler();

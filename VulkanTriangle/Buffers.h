@@ -78,13 +78,14 @@ private:
     
     // Transform an image layout to become suitable for rendering on a flat screen
     void transition_image_layout(
-        uint32_t image_index,
+        vk::Image image,
         vk::ImageLayout old_layout,
         vk::ImageLayout new_layout,
         vk::AccessFlags2 src_access_mask,
         vk::AccessFlags2 dst_access_mask,
         vk::PipelineStageFlags2 src_stage_mask,
-        vk::PipelineStageFlags2 dst_stage_mask
+        vk::PipelineStageFlags2 dst_stage_mask,
+        vk::ImageAspectFlags image_aspect_flags
     );
     
     Application* application_;

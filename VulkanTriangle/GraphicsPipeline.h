@@ -26,6 +26,14 @@ private:
     static std::vector<char> read_file(const std::string& filename);
     [[nodsicard]] vk::raii::ShaderModule create_shader_module(const std::vector<char>& code) const;
     
+    vk::PipelineDepthStencilStateCreateInfo depth_stencil_{
+        .depthTestEnable = vk::True,
+        .depthWriteEnable = vk::True,
+        .depthCompareOp = vk::CompareOp::eLess,
+        .depthBoundsTestEnable = vk::False,
+        .stencilTestEnable = vk::False
+    };
+    
     vk::raii::DescriptorSetLayout descriptor_set_layout_ = nullptr;
     vk::raii::PipelineLayout pipeline_layout_ = nullptr;
     vk::raii::Pipeline graphics_pipeline_ = nullptr;
