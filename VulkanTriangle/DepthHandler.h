@@ -14,6 +14,7 @@ public:
     vk::raii::ImageView& get_depth_image_view();
     vk::raii::Image& get_depth_image();
     vk::Format& get_depth_format();
+    vk::Format find_depth_format();
     
 private:
     
@@ -23,7 +24,6 @@ private:
         vk::FormatFeatureFlags features
         );
     
-    vk::Format find_depth_format();
     
     
     Application* application_;

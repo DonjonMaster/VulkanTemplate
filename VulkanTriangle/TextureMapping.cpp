@@ -15,7 +15,7 @@ void TextureMapping::create_texture_image()
     int tex_width, tex_height, tex_channels;
     
     stbi_uc *pixels = stbi_load(
-        "textures/texture.png", 
+        "textures/texture_3.jpg", 
         &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
     
     vk::DeviceSize imageSize = tex_width * tex_height * 4;

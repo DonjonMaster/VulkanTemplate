@@ -86,6 +86,7 @@ void Application::destroy_window()
 
 void Application::destroy_vulkan()
 {
+    
 }
 
 

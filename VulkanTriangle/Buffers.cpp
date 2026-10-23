@@ -134,17 +134,77 @@ void Buffers::create_uniform_buffers()
 
 void Buffers::update_uniform_buffers(uint32_t current_image)
 {
-    static auto start_time = std::chrono::high_resolution_clock::now();
+    using Clock = std::chrono::steady_clock;
+    static auto last_time = Clock::now();
     
-    auto current_time = std::chrono::high_resolution_clock::now();
-    float delta_time = std::chrono::duration<float, std::chrono::seconds::period>(current_time - start_time).count();
+    static float rotation_x = 0.0f;
+    static float rotation_y = 0.0f;
+    static float rotation_z = 0.0f;
+    
+    const auto current_time = Clock::now();
+    float delta_time = std::chrono::duration<float>(current_time - last_time).count();
+    last_time = current_time;
+    
+    // X rotation
+    if (glfwGetKey(application_->window, GLFW_KEY_UP) == GLFW_PRESS)
+    {
+        rotation_x += delta_time * glm::radians(90.0f);
+    }
+    if (glfwGetKey(application_->window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    {
+        rotation_x -= delta_time * glm::radians(90.0f);
+    }
+    // Y rotation
+     if (glfwGetKey(application_->window, GLFW_KEY_LEFT) == GLFW_PRESS)
+    {
+        rotation_y += delta_time * glm::radians(90.0f);
+    }
+    if (glfwGetKey(application_->window, GLFW_KEY_RIGHT) == GLFW_PRESS)
+    {
+        rotation_y -= delta_time * glm::radians(90.0f);
+    }
+    // Z rotation
+     if (glfwGetKey(application_->window, GLFW_KEY_E) == GLFW_PRESS)
+    {
+        rotation_z += delta_time * glm::radians(90.0f);
+    }
+    if (glfwGetKey(application_->window, GLFW_KEY_Q) == GLFW_PRESS)
+    {
+        rotation_z -= delta_time * glm::radians(90.0f);
+    }
     
     UniformBufferObject ubo{};
-    // Rotate 90-degree every time
-    ubo.model = rotate(glm::mat4(1.0f), delta_time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    // Place camera at a 45-degree angle
-    ubo.view = lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     
+    // Rotate object depending on input
+    ubo.model = glm::mat4(1.0f);
+    ubo.model = rotate(ubo.model, rotation_x, glm::vec3(1.0f, 0.0f, 0.0f));
+    ubo.model = rotate(ubo.model, rotation_y, glm::vec3(0.0f, 1.0f, 0.0f));
+    ubo.model = rotate(ubo.model, rotation_z, glm::vec3(0.0f, 0.0f, 1.0f));
+    
+    static float camera_rotation_x = 1.0f;
+    static float camera_rotation_y = 2.0f;
+    static float camera_rotation_z = 2.0f;
+    
+    if (glfwGetKey(application_->window, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        camera_rotation_x += delta_time * 1.0f;
+    }
+    if (glfwGetKey(application_->window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        camera_rotation_x -= delta_time * 1.0f;
+    }
+    if (glfwGetKey(application_->window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        camera_rotation_y += delta_time * 1.0f;
+    }
+    if (glfwGetKey(application_->window, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        camera_rotation_y -= delta_time * 1.0f;
+    }
+    
+    ubo.view = lookAt(glm::vec3(1.0f, camera_rotation_y, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(camera_rotation_x, 0.0f, 1.0f));
+    
+    // Place camera at a 45-degree FOV
     ubo.proj = glm::perspective(
         glm::radians(45.0f), 
         static_cast<float>(application_->surface.get_swap_chain_extent().width) 
@@ -204,14 +264,14 @@ void Buffers::record_command_buffer(uint32_t image_index)
         );
     // Transition from depth image to depth attachment layout
     transition_image_layout(
-    *application_->depth_handler.get_depth_image(),
-    vk::ImageLayout::eUndefined,
-    vk::ImageLayout::eDepthAttachmentOptimal,
-    vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-    vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
-    vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
-    vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
-    vk::ImageAspectFlagBits::eDepth
+        *application_->depth_handler.get_depth_image(),
+        vk::ImageLayout::eUndefined,
+        vk::ImageLayout::eDepthAttachmentOptimal,
+        vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+        vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+        vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+        vk::PipelineStageFlagBits2::eEarlyFragmentTests | vk::PipelineStageFlagBits2::eLateFragmentTests,
+        vk::ImageAspectFlagBits::eDepth
     );
     
     // Setup color attachment

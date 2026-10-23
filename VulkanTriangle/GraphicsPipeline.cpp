@@ -166,7 +166,7 @@ void GraphicsPipeline::create_graphics_pipeline()
         .depthClampEnable = vk::False,
         .rasterizerDiscardEnable = vk::False,
         .polygonMode = vk::PolygonMode::eFill,
-        .cullMode = vk::CullModeFlagBits::eNone,
+        .cullMode = vk::CullModeFlagBits::eFront,
         .frontFace = vk::FrontFace::eCounterClockwise,
         .depthBiasEnable = vk::False,
         .lineWidth = 1.0f
@@ -203,12 +203,6 @@ void GraphicsPipeline::create_graphics_pipeline()
     
     pipeline_layout_ = vk::raii::PipelineLayout(application_->renderer.get_device(), pipeline_layout_info);
     
-    vk::PipelineRenderingCreateInfo pipeline_rendering_create_info{
-        .colorAttachmentCount = 1,
-        .pColorAttachmentFormats = &application_->surface.get_swap_chain_surface_format().format,
-        .depthAttachmentFormat = application_->depth_handler.get_depth_format()
-    };
-    
     vk::GraphicsPipelineCreateInfo graphics_pipeline_create_info = 
         {
         .stageCount = 2,
@@ -223,6 +217,12 @@ void GraphicsPipeline::create_graphics_pipeline()
         .pDynamicState = &dynamic_state,
         .layout = pipeline_layout_,
         .renderPass = nullptr
+    };
+    
+    vk::PipelineRenderingCreateInfo pipeline_rendering_create_info{
+        .colorAttachmentCount = 1,
+        .pColorAttachmentFormats = &application_->surface.get_swap_chain_surface_format().format,
+        .depthAttachmentFormat = application_->depth_handler.find_depth_format()
     };
     
     vk::StructureChain<vk::GraphicsPipelineCreateInfo, vk::PipelineRenderingCreateInfo> pipeline_create_info_chain = {
