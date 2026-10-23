@@ -1,0 +1,195 @@
+﻿#include "Surface.h"
+
+#include <utility>
+#include <algorithm>
+
+#include "Application.h"
+
+Surface::Surface(Application* application) : application_(application)
+{
+}
+
+Surface::~Surface()
+{
+}
+
+vk::raii::SurfaceKHR& Surface::get_surface()
+{
+    return surface_;
+}
+
+vk::raii::SwapchainKHR& Surface::get_swap_chain()
+{
+    return swap_chain_;
+}
+
+vk::Extent2D& Surface::get_swap_chain_extent()
+{
+    return swap_chain_extent_;
+}
+
+vk::SurfaceFormatKHR& Surface::get_swap_chain_surface_format()
+{
+    return swap_chain_surface_format;
+}
+
+std::vector<vk::Image>& Surface::get_swap_chain_images_()
+{
+    return swap_chain_images_;
+}
+
+std::vector<vk::raii::ImageView>& Surface::get_swap_chain_image_views()
+{
+    return swap_chain_image_views_;
+}
+
+void Surface::create_surface()
+{
+    VkSurfaceKHR _surface;
+    vk::raii::Instance& instance = application_->renderer.get_instance();
+    GLFWwindow* window = application_->window;
+    
+    if (glfwCreateWindowSurface(*instance, window, nullptr, &_surface) != 0)
+    {
+        throw std::runtime_error("failed to create window surface!");
+    }
+    surface_ = vk::raii::SurfaceKHR(instance, _surface);
+}
+
+void Surface::create_swap_chain()
+{
+    vk::SurfaceCapabilitiesKHR surface_capabilities = application_->renderer.get_physical_device().getSurfaceCapabilitiesKHR(*surface_);
+    swap_chain_extent_ = choose_swap_extent(surface_capabilities);
+    uint32_t min_image_count = choose_swap_min_image_count(surface_capabilities);
+    
+    std::vector<vk::SurfaceFormatKHR> available_formats = application_->renderer.get_physical_device().getSurfaceFormatsKHR(*surface_);
+    swap_chain_surface_format = choose_swap_surface_format(available_formats);
+    
+    // Define swap chain info
+    vk::SwapchainCreateInfoKHR swap_chain_create_info_{
+        .surface = *surface_,
+        .minImageCount = min_image_count,
+        .imageFormat = swap_chain_surface_format.format,
+        .imageColorSpace = swap_chain_surface_format.colorSpace,
+        .imageExtent = swap_chain_extent_,
+        .imageArrayLayers = 1,
+        .imageUsage = vk::ImageUsageFlagBits::eColorAttachment,
+        .imageSharingMode = vk::SharingMode::eExclusive,
+        .preTransform = surface_capabilities.currentTransform,
+        .compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque,
+        .presentMode = choose_swap_present_mode(application_->renderer.get_physical_device().getSurfacePresentModesKHR(*surface_)),
+        .clipped = true
+    };
+    
+    swap_chain_ = vk::raii::SwapchainKHR(application_->renderer.get_device(), swap_chain_create_info_);
+    swap_chain_images_ = swap_chain_.getImages();
+}
+
+void Surface::create_image_views()
+{
+    assert(swap_chain_image_views_.empty());
+    
+    swap_chain_image_views_.reserve(swap_chain_images_.size());
+    // Add the image to the image swap chain
+    for (auto &image : swap_chain_images_)
+    {
+        swap_chain_image_views_.emplace_back(application_->texture_mapping.create_image_view(image, swap_chain_surface_format.format, vk::ImageAspectFlagBits::eColor));
+    }
+}
+
+void Surface::recreate_swap_chain()
+{
+    // Get window
+    GLFWwindow* window = application_->window;
+    
+    int width = 0, height = 0;
+    glfwGetFramebufferSize(window, &width, &height);
+    // if the window has a nul size (minimized), freeze the window)
+    while ((width == 0 || height == 0) && !glfwWindowShouldClose(window))
+    {
+        glfwGetFramebufferSize(window, &width, &height);
+        glfwWaitEvents();
+    }
+    if (glfwWindowShouldClose(window))
+    {
+        return;
+    }
+    application_->renderer.get_device().waitIdle();
+    
+    cleanup_swap_chain();
+    
+    create_swap_chain();
+    create_image_views();
+    application_->depth_handler.create_depth_ressources();
+}
+
+
+void Surface::cleanup_swap_chain()
+{
+    swap_chain_image_views_.clear();
+    swap_chain_ = nullptr;
+}
+
+vk::SurfaceFormatKHR Surface::choose_swap_surface_format(std::vector<vk::SurfaceFormatKHR> const& available_formats)
+{
+    // abort if empty list
+    assert(!available_formats.empty());
+    
+    // Search for the preferred combination
+    const auto format_it = std::ranges::find_if(
+        available_formats,
+        [](const auto& format)
+        {
+            return format.format == vk::Format::eB8G8R8A8Srgb && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear;
+        });
+    
+    // If at the end of the list, return the first item of the list
+    return format_it != available_formats.end() ? *format_it : available_formats[0];
+}
+
+vk::PresentModeKHR Surface::choose_swap_present_mode(std::vector<vk::PresentModeKHR> const& available_present_modes)
+{
+    auto is_present_mode_available = [](auto present_mode)
+    {
+        return present_mode == vk::PresentModeKHR::eFifo; 
+    };
+    
+    auto is_better_option_available = [](const vk::PresentModeKHR value)
+    {
+        return vk::PresentModeKHR::eMailbox == value;
+    };
+    
+    // Check if eFifo is available, if not, abort
+    assert(std::ranges::any_of(available_present_modes, is_present_mode_available));
+    
+    // Check if eMailbox is available, if is, change to eMailBox, else, change to eFifo
+    return std::ranges::any_of(available_present_modes, is_better_option_available) ? 
+    vk::PresentModeKHR::eMailbox :
+    vk::PresentModeKHR::eFifo;
+}
+
+vk::Extent2D Surface::choose_swap_extent(vk::SurfaceCapabilitiesKHR const& capabilities)
+{
+    // Check if extent is defined manually
+    if (std::cmp_not_equal(capabilities.currentExtent.width, ~0))
+    {
+        return capabilities.currentExtent;
+    }
+    int width, height;
+    glfwGetFramebufferSize(application_->window, &width, &height);
+    // Set size to actual window size
+    return {
+        std::clamp<uint32_t>(width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width),
+        std::clamp<uint32_t>(height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height)
+    };
+}
+
+uint32_t Surface::choose_swap_min_image_count(vk::SurfaceCapabilitiesKHR const& surface_capabilities)
+{
+    auto min_image_count = std::max<uint32_t>(3u, surface_capabilities.minImageCount);
+    if ((0 < surface_capabilities.maxImageCount) && (surface_capabilities.maxImageCount < min_image_count))
+    {
+        min_image_count = surface_capabilities.maxImageCount;
+    }
+    return min_image_count;
+}

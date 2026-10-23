@@ -1,0 +1,79 @@
+﻿#include <glm/glm.hpp>
+#include <array>
+
+
+struct Vertex
+{
+    glm::vec3 pos;
+    glm::vec3 color;
+    glm::vec2 texCoord;
+
+    // Vertex binding describes at which rate to load data from memory throughout the verticies (number of bytes)
+    static vk::VertexInputBindingDescription get_binding_description()
+    {
+        return {.binding = 0, .stride = sizeof(Vertex), .inputRate = vk::VertexInputRate::eVertex};
+    }
+
+    // Two attributes for vertices : position and color
+    static std::array<vk::VertexInputAttributeDescription, 3> get_attribute_descriptions()
+    {
+        return {
+            {
+                {.location = 0, .binding = 0, .format = vk::Format::eR32G32B32Sfloat, .offset = offsetof(Vertex, pos)},
+                {
+                    .location = 1, .binding = 0, .format = vk::Format::eR32G32B32Sfloat,
+                    .offset = offsetof(Vertex, color)
+                },
+                {.location = 2, .binding = 0, .format = vk::Format::eR32G32Sfloat, .offset = offsetof(Vertex, texCoord)}
+            }
+        };
+    }
+};
+
+const std::vector<Vertex> vertices = {
+    // Face +Z
+    {{-0.5f, -0.5f, 0.5f}, {1, 0, 0}, {0, 0}},
+    {{0.5f, -0.5f, 0.5f}, {1, 0, 0}, {1, 0}},
+    {{0.5f, 0.5f, 0.5f}, {1, 0, 0}, {1, 1}},
+    {{-0.5f, 0.5f, 0.5f}, {1, 0, 0}, {0, 1}},
+
+    // Face -Z
+    {{-0.5f, -0.5f, -0.5f}, {1, 1, 0}, {0, 0}},
+    {{-0.5f, 0.5f, -0.5f}, {1, 1, 0}, {1, 0}},
+    {{0.5f, 0.5f, -0.5f}, {1, 1, 0}, {1, 1}},
+    {{0.5f, -0.5f, -0.5f}, {1, 1, 0}, {0, 1}},
+
+    // Face +X
+    {{0.5f, -0.5f, -0.5f}, {0, 1, 0}, {0, 0}},
+    {{0.5f, 0.5f, -0.5f}, {0, 1, 0}, {1, 0}},
+    {{0.5f, 0.5f, 0.5f}, {0, 1, 0}, {1, 1}},
+    {{0.5f, -0.5f, 0.5f}, {0, 1, 0}, {0, 1}},
+
+    // Face -X
+    {{-0.5f, -0.5f, 0.5f}, {0, 1, 1}, {0, 0}},
+    {{-0.5f, 0.5f, 0.5f}, {0, 1, 1}, {1, 0}},
+    {{-0.5f, 0.5f, -0.5f}, {0, 1, 1}, {1, 1}},
+    {{-0.5f, -0.5f, -0.5f}, {0, 1, 1}, {0, 1}},
+
+    // Face +Y
+    {{-0.5f, 0.5f, -0.5f}, {0, 0, 1}, {0, 0}},
+    {{-0.5f, 0.5f, 0.5f}, {0, 0, 1}, {1, 0}},
+    {{0.5f, 0.5f, 0.5f}, {0, 0, 1}, {1, 1}},
+    {{0.5f, 0.5f, -0.5f}, {0, 0, 1}, {0, 1}},
+
+    // Face -Y
+    {{-0.5f, -0.5f, 0.5f}, {1, 0, 1}, {0, 0}},
+    {{-0.5f, -0.5f, -0.5f}, {1, 0, 1}, {1, 0}},
+    {{0.5f, -0.5f, -0.5f}, {1, 0, 1}, {1, 1}},
+    {{0.5f, -0.5f, 0.5f}, {1, 0, 1}, {0, 1}}
+};
+
+
+const std::vector<uint16_t> indices = {
+    0, 1, 2, 2, 3, 0, // +Z
+    4, 5, 6, 6, 7, 4, // -Z
+    8, 9, 10, 10, 11, 8, // +X
+    12, 13, 14, 14, 15, 12, // -X
+    16, 17, 18, 18, 19, 16, // +Y
+    20, 21, 22, 22, 23, 20 // -Y
+};
