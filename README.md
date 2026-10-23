@@ -1,18 +1,21 @@
 # VulkanTemplate
 
 
-# À propos
+## À propos
 
-Ceci est un programme recréant toute la pipeline 3D, afin de récréer l'équivalent du VulkanCube.
-Il pourra servir comme base à de futur projets utilisant vulkan
+Ce programme recrée les principales étapes d’un pipeline graphique 3D avec Vulkan, afin de produire un résultat comparable à celui de l’exemple *Vulkan Cube*.
+
+Il pourra servir de base à de futurs projets utilisant Vulkan.
 
 ## Pré-requis
 
-Il faut le SDK vulkan 1.4.357.0
+Il faut le SDK vulkan **1.4.357.0**
 
-Pour le mettre en place, utilisez soit
-[le .exe](https://sdk.lunarg.com/sdk/download/1.4.357.0/windows/vulkansdk-windows-X64-1.4.357.0.exe)
-  |  [ou le .ZIP](https://sdk.lunarg.com/sdk/download/1.4.357.0/windows/VulkanRT-X64-1.4.357.0-Components.zip)
+Vous pouvez l’installer à l’aide de l’un des fichiers suivants :
+
+- [Installateur Windows (.exe)](https://sdk.lunarg.com/sdk/download/1.4.357.0/windows/vulkansdk-windows-X64-1.4.357.0.exe)
+- [Archive de composants (.zip)](https://sdk.lunarg.com/sdk/download/1.4.357.0/windows/VulkanRT-X64-1.4.357.0-Components.zip)
+  
 (à mettre dans C:\VulkanSDK\1.4.357.0)
 
 ## Contrôles
@@ -44,3 +47,23 @@ Dès lors, il est possible de créer une image en 3D, la stocker dans la swap ch
 
 Le programme effectue une dernière chose, l'ajout d'une **texture**. Il rajoute scanne une image, la transforme en données pour la stocker dans un buffer, afin qu'elle puisse être incorporé au shaders, et placer sur un objet 3D.
 
+
+
+## Initialisation des ressources
+
+Au démarrage, le programme initialise Vulkan dans l’ordre suivant :
+
+1. Il crée une **instance Vulkan**, puis configure le callback de débogage.
+2. Il crée la **surface** associée à la fenêtre.
+3. Il sélectionne un périphérique physique compatible, puis crée le **périphérique logique** et les files d’attente nécessaires.
+4. Il crée la **swap chain**, puis une *image view* pour chacune de ses images.
+5. Il crée la disposition des descripteurs (*descriptor set layout*), puis la pipeline graphique.
+6. Il crée le **command pool**, qui servira à allouer les command buffers.
+7. Il crée les ressources de profondeur.
+8. Il charge la texture dans une image Vulkan, puis crée l’image view et le sampler associés.
+9. Il crée les buffers de sommets, d’indices et uniformes.
+10. Il crée le pool de descripteurs, puis les descripteurs qui relient les ressources — notamment les buffers uniformes et la texture — aux shaders.
+11. Il alloue les command buffers.
+12. Enfin, il crée les objets de synchronisation utilisés pour coordonner le CPU, le GPU et la présentation des images.
+
+Une fois l’initialisation terminée, le programme peut enregistrer et soumettre les commandes de rendu, puis présenter les images de la swap chain à l’écran.
