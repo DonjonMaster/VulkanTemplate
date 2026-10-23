@@ -130,6 +130,7 @@ void Buffers::create_uniform_buffers()
         // We map memory now to get a pointer to which we can write the data later on
         uniform_buffers_mapped.emplace_back(uniform_buffers_memory.back().mapMemory(0, buffer_size));
     }
+    ubo.model = glm::mat4(1.0f);
 }
 
 void Buffers::update_uniform_buffers(uint32_t current_image)
@@ -137,9 +138,9 @@ void Buffers::update_uniform_buffers(uint32_t current_image)
     using Clock = std::chrono::steady_clock;
     static auto last_time = Clock::now();
     
-    static float rotation_x = 0.0f;
-    static float rotation_y = 0.0f;
-    static float rotation_z = 0.0f;
+    float rotation_x = 0.0f;
+    float rotation_y = 0.0f;
+    float rotation_z = 0.0f;
     
     const auto current_time = Clock::now();
     float delta_time = std::chrono::duration<float>(current_time - last_time).count();
@@ -173,10 +174,10 @@ void Buffers::update_uniform_buffers(uint32_t current_image)
         rotation_z -= delta_time * glm::radians(90.0f);
     }
     
-    UniformBufferObject ubo{};
+    
     
     // Rotate object depending on input
-    ubo.model = glm::mat4(1.0f);
+    
     ubo.model = rotate(ubo.model, rotation_x, glm::vec3(1.0f, 0.0f, 0.0f));
     ubo.model = rotate(ubo.model, rotation_y, glm::vec3(0.0f, 1.0f, 0.0f));
     ubo.model = rotate(ubo.model, rotation_z, glm::vec3(0.0f, 0.0f, 1.0f));

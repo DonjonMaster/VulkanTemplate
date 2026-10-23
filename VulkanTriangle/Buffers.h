@@ -55,6 +55,7 @@ public:
 
 private:
     // VARIABLES
+    UniformBufferObject ubo{};
     
     // CommandPools manage the memory that is used to store buffers
     vk::raii::CommandPool command_pool_ = nullptr;
